@@ -1,0 +1,32 @@
+{
+  "takim": {
+    "ad": "TakimAdi",
+    "uyeler": ["..."],
+    "iletisim": "..."
+  },
+  "proje": {
+    "ad": "ProjeAdi",
+    "ozet": "Tek cümlelik çözüm özeti",
+    "deploy_url": null
+  },
+  "calistirma": {
+    "komut": "python app.py",
+    "on_kosullar": ["Python 3.11+"],
+    "veri_yolu": "./data"
+  },
+  "ai_kullanimi": {
+    "platform": "SAKA",
+    "modeller": [],
+    "mcp_sunuculari": [],
+    "apiler": [],
+    "insan_ai_is_bolumu": ""
+  },
+  "cozum": {
+    "yaklasim": "",
+    "x_factor": "",
+    "olctugumuz_metrikler": {}
+  },
+  "sunum": {
+    "demo_akisi": ["adim 1", "adim 2"]
+  }
+}
