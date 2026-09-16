@@ -1,8 +1,13 @@
 {
   "takim": {
-    "ad": "TakimAdi",
-    "uyeler": ["..."],
-    "iletisim": "..."
+    "ad": "Fail-i Over",
+    "uyeler": [
+      "Ali Gökhan Borat",
+      "Alpaslan Çetin",
+      "İsmail Soyseven",
+      "Ömer Faruk Moran"
+    ],
+    "iletisim": ""
   },
   "proje": {
     "ad": "ProjeAdi",
