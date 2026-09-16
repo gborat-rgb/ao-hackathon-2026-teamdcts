@@ -10,31 +10,86 @@
     "iletisim": "ali.borat@turkcell.com.tr"
   },
   "proje": {
-    "ad": "ProjeAdi",
-    "ozet": "Tek cümlelik çözüm özeti",
+    "ad": "Alarm Fırtınası → Olay Kartları",
+    "ozet": "3000 alarmı bağımlılık grafiği farkında nedensel kümelemeyle 5 gerekçeli olay kartına indirger; her kart kök neden hipotezini kanıtı ve karşı hipoteziyle birlikte sunar.",
     "deploy_url": null
   },
   "calistirma": {
-    "komut": "python app.py",
+    "komut": "python -m src.cli",
     "on_kosullar": [
       "Python 3.9.2",
       "pip install -r requirements.txt"
     ],
-    "veri_yolu": "./data"
+    "veri_yolu": "./senaryo_paketi",
+    "diger_komutlar": {
+      "x_factor_olcumu": "python -m src.cli --x-factor",
+      "gurultu_denetimi": "python -m src.cli --gurultu 25",
+      "json_cikti": "python -m src.cli --json",
+      "web_arayuzu": "streamlit run src/app.py",
+      "testler": "python -m pytest tests/ -q"
+    }
   },
   "ai_kullanimi": {
     "platform": "SAKA",
-    "modeller": [],
+    "modeller": [
+      {
+        "ad": "Claude Opus 5",
+        "surum": "claude-opus-5[1m]",
+        "arac": "Claude Code (CLI)",
+        "kullanim": "Veri keşfi, alternatif yaklaşım üretimi ve karşılaştırması, uygulama, test, dokümantasyon"
+      }
+    ],
     "mcp_sunuculari": [],
     "apiler": [],
-    "insan_ai_is_bolumu": ""
+    "insan_ai_is_bolumu": "Kapsam, zaman bütçesi ve teslim önceliği insan tarafından belirlendi. Veri keşfi, üç alternatif yaklaşımın üretilmesi ve ölçümle karşılaştırılması, uygulama ve testler AI tarafından yapıldı. Yaklaşım seçimi ve X-Factor kararı AI tarafından gerekçelendirildi, insan tarafından onaylandı. Kodlamaya geçiş onayı insandan alındı. AI'ın önerdiği dört yaklaşım/parametre veriyle ölçülerek çürütüldü ve değiştirildi; ayrıntısı AI_JURI.md bölüm 1'de."
   },
   "cozum": {
-    "yaklasim": "",
-    "x_factor": "",
-    "olctugumuz_metrikler": {}
+    "yaklasim": "Dört aşamalı boru hattı: (1) her alarmın kendi tipinin ve servisinin beklenen hızından Poisson sapması ile skorlanması — çıktı ikili karar değil skor olduğu için eleme gerekçesi üretilebiliyor; (2) zaman yakınlığı ve bağımlılık grafiği mesafesinin birlikte kullanıldığı, geçişken bağlantı sayesinde uyarlanabilir pencereli kümeleme; (3) grafik ayrışma testi; (4) açıklama oranı, öncelik ve imza gücüne dayalı kök neden sıralaması, ikinci aday karşı hipotez olarak korunuyor.",
+    "x_factor": "Grafik ayrışma testi: bir kümenin açıklanamayan artığı kendi köküne sahipse ve bu kök birincil kökle bağımlılık grafiğinde bağlı değilse küme bölünür. 02:38-02:58 arasında payment-provider-gw dış servis kesintisi ile session-service bellek tükenmesi eş zamanlı gerçekleşiyor ve ikisi de mobile-bff'i etkiliyor; zaman+servis benzerliğine bakan her kümeleme bunları tek olay sayar. İki kök arasında grafik yolu olmadığı için ayrı tutuluyorlar. Ölçülebilir: test kapalıyken 4 kart, açıkken 5 kart. Kod: src/clustering.py ayristir() ve _kokler_kopuk_mu(); test: tests/test_pipeline.py::test_session_service_payment_ile_birlesmiyor",
+    "olctugumuz_metrikler": {
+      "islenen_alarm": 3000,
+      "ornekleme": "yok, veri setinin tamami isleniyor",
+      "gurultu_elenen": 1888,
+      "gurultu_orani": 0.63,
+      "sinyal": 1112,
+      "uretilen_kart": 5,
+      "kabul_kriteri_kart_ust_siniri": 15,
+      "indirgeme_carpani": 600,
+      "uctan_uca_sure_sn": 0.37,
+      "ayrisma_testi_kapali_kart": 4,
+      "ayrisma_testi_acik_kart": 5,
+      "ayrisma_ile_ortaya_cikan_kok": "session-service",
+      "test_sayisi": 19,
+      "gecen_test": 19
+    },
+    "bulunan_olaylar": [
+      {"kart": "OLAY-01", "kok_neden": "dc1/rack-A kabin ağ arızası", "imza": "pkt_loss", "alarm": 473, "guven": "yuksek"},
+      {"kart": "OLAY-02", "kok_neden": "billing-db disk dolması", "imza": "disk_full", "alarm": 167, "guven": "yuksek"},
+      {"kart": "OLAY-03", "kok_neden": "payment-provider-gw dış servis kesintisi", "imza": "ext_slow", "alarm": 260, "guven": "yuksek"},
+      {"kart": "OLAY-04", "kok_neden": "session-service bellek tükenmesi", "imza": "oom_risk", "alarm": 27, "guven": "orta"},
+      {"kart": "OLAY-05", "kok_neden": "subscriber-db bağlantı havuzu tükenmesi", "imza": "db_conn_pool", "alarm": 67, "guven": "yuksek"}
+    ],
+    "bilinen_sinirlar": [
+      "Olay sayısı veriden türetildi, brifingde verilmedi.",
+      "OLAY-05'in kökü tartışmalı: bağımlılık grafiği arıza yayılımını modelliyor, yük yayılımını değil; yük ters yönde akıyor. batch-scheduler karşı hipotez olarak kartta duruyor.",
+      "Gürültü elemesinde sızıntı var: cert_expiry ve backup_warn'dan birkaç alarm sinyal tarafında kalıyor.",
+      "Gözlem penceresi kapalı; 03:30 sonrası görülemiyor, OLAY-05 pencere sonunda hâlâ aktif.",
+      "Geçmiş olay örüntüsü eşleştirmesi (üçüncü bonus) yapılmadı; veri tek bir 2 saatlik pencere.",
+      "Aksiyon durumu kalıcı değil, Streamlit oturum belleğinde tutuluyor.",
+      "Ekran görüntüleri elle alınmalı; playwright bağımlılığı greenlet C++ derleyici istiyor, ortamda yok.",
+      "scikit-learn ve shap ortamda kurulu ancak son çözümde kullanılmıyor; keşif aşamasında denendi ve denetimsiz kümeleme gerekçeli olarak reddedildi."
+    ]
   },
   "sunum": {
-    "demo_akisi": ["adim 1", "adim 2"]
+    "demo_akisi": [
+      "Problemi göster: 2 saatlik pencerede 3000 alarm, neden-sonuç ilişkisi görünmüyor",
+      "python -m src.cli — 3000 alarm 5 karta iniyor (600x, 0.37 sn); OLAY-01 kanıtı: dc1/rack-A kabinindeki 9 host'un 9'u da alarm üretiyor",
+      "Kanıt ile gerekçenin ayrı bloklar olduğunu göster: ölçülen sayı ile çıkarım karışmıyor",
+      "python -m src.cli --x-factor — ayrışma testi kapalı 4 kart, açık 5 kart; session-service ortaya çıkıyor",
+      "streamlit run src/app.py — OLAY-03'ün aksiyonunu acik -> devam_ediyor -> kapandi yap, durum geçmişini göster",
+      "Arayüzde ayrışma anahtarını kapat, kart sayısının 4'e düştüğünü canlı göster, tekrar aç",
+      "Gürültü Denetimi sekmesi: elenen bir alarmın neden elendiğini göster",
+      "Sınırları söyle: OLAY-05'in kökü tartışmalı, karşı hipotez kartta duruyor"
+    ]
   }
 }
