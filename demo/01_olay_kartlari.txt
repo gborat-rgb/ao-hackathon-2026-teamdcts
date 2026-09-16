@@ -1,0 +1,197 @@
+
+==============================================================================
+S-A1 ALARM FIRTINASI — OLAY KARTLARI
+==============================================================================
+  Toplam alarm     : 3000
+  Gurultu elenen   : 1888 (%63)
+  Sinyal           : 1112
+  Uretilen kart    : 5
+  Indirgeme        : 3000 alarm -> 5 kart (600x)
+  Calisma suresi   : 0.32 sn
+
+==============================================================================
+OLAY-01  dc1/rack-A kabini kaynakli olay — pkt_loss  [ayrisma testi ile ayrildi]
+==============================================================================
+  Zaman        : 01:42:13  ->  01:53:52
+  Alarm        : 473
+  Azami siddet : 5
+  Servisler    : api-gateway, auth-service, billing-service, charging-service, dns-resolver, message-queue, mobile-bff, notification-service
+                 (+6 servis daha)
+
+  KOK NEDEN HIPOTEZI: dc1/rack-A kabini  (pkt_loss)
+
+  KANIT
+    - 473 alarm, 14 servis, 27 host
+    - en yuksek siddet 5; sev>=4 olan 232 alarm (49%)
+    - kok alarm 01:42:13'de; kumenin %100'i bu andan sonra geliyor
+    - siddetli alarmlarin gelis sirasi: network_down -> pkt_loss -> network_flap -> latency_high
+    - bagimlilik grafiginde kokun asagi akisi kumenin %98'ini acikliyor
+    - dc1/rack-A kabinindeki 9 host'un 9'u alarm uretiyor (%100)
+
+  GEREKCE
+    Kumenin ilk siddetli alarmi dc1/rack-A kabini uzerinde pkt_loss tipinde
+    ve 01:42:13'de uretildi. Sonrasinda gelen alarmlar (network_down ->
+    pkt_loss -> network_flap) bagimlilik grafiginde bu noktanin asagi
+    akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin
+    %98'ini acikliyor. Olayin sekli ani patlama (12 dakika). Bu nedenle
+    dc1/rack-A kabini turev etki degil, kok neden olarak degerlendirildi.
+
+  GUVEN: YUKSEK (0.99)
+
+  KARSI HIPOTEZ
+    dns-resolver (aciklama orani %76) — kok olarak bu da degerlendirildi,
+    ancak daha gec basladigi icin ikinci sirada.
+
+  AKSIYON AKS-01  [ACIK]
+    Sahip : Ag ekibi
+    Kabin ust switch'ini ve uplink durumunu kontrol et (dc1/rack-A kabini)
+
+==============================================================================
+OLAY-02  billing-db kaynakli olay — disk_full
+==============================================================================
+  Zaman        : 02:05:06  ->  02:25:15
+  Alarm        : 167
+  Azami siddet : 5
+  Servisler    : billing-db, billing-service, invoice-batch, order-service, payment-service
+
+  KOK NEDEN HIPOTEZI: billing-db  (disk_full)
+
+  KANIT
+    - 167 alarm, 5 servis, 12 host
+    - en yuksek siddet 5; sev>=4 olan 141 alarm (84%)
+    - kok alarm 02:05:06'de; kumenin %100'i bu andan sonra geliyor
+    - siddetli alarmlarin gelis sirasi: disk_full -> db_write_fail -> ntp_drift -> txn_fail
+    - bagimlilik grafiginde kokun asagi akisi kumenin %70'ini acikliyor
+
+  GEREKCE
+    Kumenin ilk siddetli alarmi billing-db uzerinde disk_full tipinde ve
+    02:05:06'de uretildi. Sonrasinda gelen alarmlar (disk_full ->
+    db_write_fail -> ntp_drift) bagimlilik grafiginde bu noktanin asagi
+    akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin
+    %70'ini acikliyor. Olayin sekli zamana yayilan gelisim (20 dakika). Bu
+    nedenle billing-db turev etki degil, kok neden olarak degerlendirildi.
+
+  GUVEN: YUKSEK (0.72)
+
+  KARSI HIPOTEZ
+    charging-service (aciklama orani %61) — kok olarak bu da
+    degerlendirildi, ancak daha gec basladigi icin ikinci sirada.
+
+  SINIRLAR
+    Kumenin %30'i kok nedenin asagi akisinda degil; ikinci bir etken
+    olabilir.
+
+  AKSIYON AKS-02  [ACIK]
+    Sahip : Veritabani ekibi
+    Disk alanini genislet, eski WAL/log dosyalarini temizle (billing-db)
+
+==============================================================================
+OLAY-03  payment-provider-gw kaynakli olay — ext_slow  [ayrisma testi ile ayrildi]
+==============================================================================
+  Zaman        : 02:40:28  ->  02:57:35
+  Alarm        : 260
+  Azami siddet : 5
+  Servisler    : mobile-bff, order-service, payment-provider-gw, payment-service
+
+  KOK NEDEN HIPOTEZI: payment-provider-gw  (ext_slow)
+
+  KANIT
+    - 260 alarm, 4 servis, 11 host
+    - en yuksek siddet 5; sev>=4 olan 229 alarm (88%)
+    - kok alarm 02:40:28'de; kumenin %100'i bu andan sonra geliyor
+    - siddetli alarmlarin gelis sirasi: ext_unreach -> ext_slow -> timeout -> txn_fail
+    - bagimlilik grafiginde kokun asagi akisi kumenin %89'ini acikliyor
+
+  GEREKCE
+    Kumenin ilk siddetli alarmi payment-provider-gw uzerinde ext_slow
+    tipinde ve 02:40:28'de uretildi. Sonrasinda gelen alarmlar (ext_unreach
+    -> ext_slow -> timeout) bagimlilik grafiginde bu noktanin asagi akisinda
+    kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %89'ini
+    acikliyor. Olayin sekli zamana yayilan gelisim (17 dakika). Bu nedenle
+    payment-provider-gw turev etki degil, kok neden olarak degerlendirildi.
+
+  GUVEN: YUKSEK (0.86)
+
+  KARSI HIPOTEZ
+    payment-service (aciklama orani %78) — kok olarak bu da degerlendirildi,
+    ancak daha gec basladigi icin ikinci sirada.
+
+  AKSIYON AKS-03  [ACIK]
+    Sahip : Entegrasyon ekibi
+    Dis saglayici gecikmesini olc, zaman asimi degerlerini gozden gecir
+    (payment-provider-gw)
+
+==============================================================================
+OLAY-04  session-service kaynakli olay — oom_risk  [ayrisma testi ile ayrildi]
+==============================================================================
+  Zaman        : 02:42:38  ->  02:57:42
+  Alarm        : 27
+  Azami siddet : 5
+  Servisler    : auth-service, session-service, web-bff
+
+  KOK NEDEN HIPOTEZI: session-service  (oom_risk)
+
+  KANIT
+    - 27 alarm, 3 servis, 8 host
+    - en yuksek siddet 5; sev>=4 olan 8 alarm (30%)
+    - kok alarm 02:42:38'de; kumenin %100'i bu andan sonra geliyor
+    - siddetli alarmlarin gelis sirasi: oom_risk
+    - bagimlilik grafiginde kokun asagi akisi kumenin %82'ini acikliyor
+
+  GEREKCE
+    Kumenin ilk siddetli alarmi session-service uzerinde oom_risk tipinde ve
+    02:42:38'de uretildi. Sonrasinda gelen alarmlar (oom_risk) bagimlilik
+    grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor;
+    kokun asagi akisi kumenin %82'ini acikliyor. Olayin sekli zamana yayilan
+    gelisim (15 dakika). Bu nedenle session-service turev etki degil, kok
+    neden olarak degerlendirildi.
+
+  GUVEN: ORTA (0.57)
+
+  KARSI HIPOTEZ
+    subscriber-service (aciklama orani %3) — kok olarak bu da
+    degerlendirildi, ancak daha gec basladigi icin ikinci sirada.
+
+  SINIRLAR
+    Kume kucuk; istatistiksel dayanak sinirli.
+
+  AKSIYON AKS-04  [ACIK]
+    Sahip : Uygulama ekibi
+    Heap kullanimini incele, servisi kontrollu yeniden baslat
+    (session-service)
+
+==============================================================================
+OLAY-05  subscriber-db kaynakli olay — db_conn_pool
+==============================================================================
+  Zaman        : 03:09:19  ->  03:27:14
+  Alarm        : 67
+  Azami siddet : 4
+  Servisler    : reconciliation-batch, report-batch, subscriber-db, subscriber-service
+
+  KOK NEDEN HIPOTEZI: subscriber-db  (db_conn_pool)
+
+  KANIT
+    - 67 alarm, 4 servis, 8 host
+    - en yuksek siddet 4; sev>=4 olan 34 alarm (51%)
+    - kok alarm 03:09:19'de; kumenin %100'i bu andan sonra geliyor
+    - siddetli alarmlarin gelis sirasi: db_conn_pool -> batch_slow -> cpu_high -> network_flap
+    - bagimlilik grafiginde kokun asagi akisi kumenin %89'ini acikliyor
+
+  GEREKCE
+    Kumenin ilk siddetli alarmi subscriber-db uzerinde db_conn_pool tipinde
+    ve 03:09:19'de uretildi. Sonrasinda gelen alarmlar (db_conn_pool ->
+    batch_slow -> cpu_high) bagimlilik grafiginde bu noktanin asagi akisinda
+    kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %89'ini
+    acikliyor. Olayin sekli zamana yayilan gelisim (18 dakika). Bu nedenle
+    subscriber-db turev etki degil, kok neden olarak degerlendirildi.
+
+  GUVEN: YUKSEK (0.88)
+
+  KARSI HIPOTEZ
+    batch-scheduler (aciklama orani %37) — kok olarak bu da degerlendirildi,
+    ancak daha gec basladigi icin ikinci sirada.
+
+  AKSIYON AKS-05  [ACIK]
+    Sahip : Veritabani ekibi
+    Baglanti havuzu limitini ve acik oturumlari incele (subscriber-db)
+

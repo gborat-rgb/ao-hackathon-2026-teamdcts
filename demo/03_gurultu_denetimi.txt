@@ -1,0 +1,53 @@
+GURULTU DENETIMI — elenen alarmlardan ornekler
+==============================================================================
+  ALM-01499  cert_expiry    load-balancer        sev=4 skor=0.17
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-1.4); servisinde yogunlasma yok (z=0.3)
+  ALM-02839  network_flap   session-service      sev=2 skor=0.18
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=0.9); servisinde yogunlasma yok (z=1.0); dusuk siddet (sev=2)
+  ALM-02927  disk_warn      payment-provider-gw  sev=2 skor=0.22
+      neden elendi: servisinde yogunlasma yok (z=0.8); dusuk siddet (sev=2)
+  ALM-02545  log_rotate     payment-provider-gw  sev=2 skor=0.10
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-0.7); servisinde yogunlasma yok (z=0.8); dusuk siddet (sev=2)
+  ALM-02229  network_flap   mobile-bff           sev=4 skor=0.22
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=0.9); servisinde yogunlasma yok (z=-0.7)
+  ALM-01638  network_flap   session-service      sev=3 skor=0.23
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=0.9); servisinde yogunlasma yok (z=1.0)
+  ALM-02023  log_rotate     ntp-service          sev=1 skor=0.05
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-0.7); servisinde yogunlasma yok (z=0.9); dusuk siddet (sev=1)
+  ALM-01706  mem_high       dns-resolver         sev=3 skor=0.12
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-0.5); servisinde yogunlasma yok (z=0.4)
+  ALM-01698  mem_high       session-service      sev=1 skor=0.06
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-0.5); servisinde yogunlasma yok (z=1.0); dusuk siddet (sev=1)
+  ALM-01738  cpu_high       subscriber-db        sev=2 skor=0.09
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-1.4); servisinde yogunlasma yok (z=0.7); dusuk siddet (sev=2)
+  ALM-02966  ntp_drift      billing-service      sev=1 skor=0.00
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-0.1); servisinde yogunlasma yok (z=-0.6); dusuk siddet (sev=1)
+  ALM-02076  ntp_drift      dns-resolver         sev=1 skor=0.02
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-0.1); servisinde yogunlasma yok (z=0.4); dusuk siddet (sev=1)
+  ALM-01358  disk_warn      subscriber-service   sev=3 skor=0.22
+      neden elendi: servisinde yogunlasma yok (z=-0.8)
+  ALM-02387  disk_warn      session-service      sev=1 skor=0.18
+      neden elendi: servisinde yogunlasma yok (z=1.0); dusuk siddet (sev=1)
+  ALM-01582  network_flap   subscriber-db        sev=2 skor=0.16
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=0.9); servisinde yogunlasma yok (z=0.7); dusuk siddet (sev=2)
+  ALM-01825  backup_warn    billing-db           sev=1 skor=0.00
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=0.1); servisinde yogunlasma yok (z=-0.6); dusuk siddet (sev=1)
+  ALM-02469  disk_warn      subscriber-db        sev=3 skor=0.26
+      neden elendi: servisinde yogunlasma yok (z=0.7)
+  ALM-02170  disk_warn      web-bff              sev=2 skor=0.17
+      neden elendi: servisinde yogunlasma yok (z=-0.5); dusuk siddet (sev=2)
+  ALM-01746  ntp_drift      mobile-bff           sev=1 skor=0.00
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-0.1); servisinde yogunlasma yok (z=-0.7); dusuk siddet (sev=1)
+  ALM-02590  backup_warn    order-service        sev=1 skor=0.00
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=0.1); servisinde yogunlasma yok (z=-1.3); dusuk siddet (sev=1)
+  ALM-02181  latency_high   subscriber-service   sev=2 skor=0.05
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-1.4); servisinde yogunlasma yok (z=-0.8); dusuk siddet (sev=2)
+  ALM-02662  latency_high   mobile-bff           sev=2 skor=0.05
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-1.4); servisinde yogunlasma yok (z=-0.7); dusuk siddet (sev=2)
+  ALM-02582  backup_warn    payment-provider-gw  sev=3 skor=0.15
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=0.1); servisinde yogunlasma yok (z=0.8)
+  ALM-01558  disk_warn      report-batch         sev=1 skor=0.12
+      neden elendi: servisinde yogunlasma yok (z=-0.2); dusuk siddet (sev=1)
+  ALM-02716  latency_high   billing-service      sev=2 skor=0.05
+      neden elendi: tipi o dakikada beklenenden fazla gorulmuyor (z=-1.4); servisinde yogunlasma yok (z=-0.6); dusuk siddet (sev=2)
+

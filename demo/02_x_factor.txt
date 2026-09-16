@@ -1,0 +1,11 @@
+==============================================================================
+X-FACTOR OLCUMU — grafik ayrisma testi
+==============================================================================
+  Ayrisma testi KAPALI : 4 kart
+  Ayrisma testi ACIK   : 5 kart
+
+  Test acilinca ortaya cikan kok neden(ler):
+    + session-service
+
+  Bu kok(ler), test kapaliyken baska bir olayla ayni karta
+  konuyordu — yani yanlis birlestirme yapiliyordu.

@@ -1,0 +1,231 @@
+{
+  "metrikler": {
+    "toplam_alarm": 3000,
+    "sinyal": 1112,
+    "gurultu": 1888,
+    "gurultu_orani": 0.6293,
+    "kart_sayisi": 5,
+    "indirgeme_orani": 0.001667,
+    "indirgeme_carpani": 600.0,
+    "kartlara_giren_alarm": 994,
+    "ayrisma_ile_bolunen_kart": 3,
+    "calisma_suresi_sn": 0.233
+  },
+  "kartlar": [
+    {
+      "kart_id": "OLAY-01",
+      "baslik": "dc1/rack-A kabini kaynakli olay — pkt_loss",
+      "kok_neden": "dc1/rack-A kabini",
+      "kok_alarm_tipi": "pkt_loss",
+      "baslangic": "2026-09-10 01:42:13",
+      "bitis": "2026-09-10 01:53:52",
+      "alarm_sayisi": 473,
+      "etkilenen_servisler": [
+        "api-gateway",
+        "auth-service",
+        "billing-service",
+        "charging-service",
+        "dns-resolver",
+        "message-queue",
+        "mobile-bff",
+        "notification-service",
+        "order-service",
+        "reconciliation-batch",
+        "report-batch",
+        "subscriber-db",
+        "subscriber-service",
+        "web-bff"
+      ],
+      "etkilenen_host_sayisi": 27,
+      "azami_siddet": 5,
+      "kanit": [
+        "473 alarm, 14 servis, 27 host",
+        "en yuksek siddet 5; sev>=4 olan 232 alarm (49%)",
+        "kok alarm 01:42:13'de; kumenin %100'i bu andan sonra geliyor",
+        "siddetli alarmlarin gelis sirasi: network_down -> pkt_loss -> network_flap -> latency_high",
+        "bagimlilik grafiginde kokun asagi akisi kumenin %98'ini acikliyor",
+        "dc1/rack-A kabinindeki 9 host'un 9'u alarm uretiyor (%100)"
+      ],
+      "gerekce": "Kumenin ilk siddetli alarmi dc1/rack-A kabini uzerinde pkt_loss tipinde ve 01:42:13'de uretildi. Sonrasinda gelen alarmlar (network_down -> pkt_loss -> network_flap) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %98'ini acikliyor. Olayin sekli ani patlama (12 dakika). Bu nedenle dc1/rack-A kabini turev etki degil, kok neden olarak degerlendirildi.",
+      "guven": "yuksek",
+      "guven_skoru": 0.99,
+      "karsi_hipotez": "dns-resolver (aciklama orani %76) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
+      "sinirlar": [],
+      "ayrisma_ile_bolundu": true,
+      "aksiyon": {
+        "aksiyon_id": "AKS-01",
+        "kart_id": "OLAY-01",
+        "sahip": "Ag ekibi",
+        "aciklama": "Kabin ust switch'ini ve uplink durumunu kontrol et (dc1/rack-A kabini)",
+        "durum": "acik",
+        "acilis": "2026-09-16T15:14:01",
+        "guncelleme": "",
+        "gecmis": []
+      }
+    },
+    {
+      "kart_id": "OLAY-02",
+      "baslik": "billing-db kaynakli olay — disk_full",
+      "kok_neden": "billing-db",
+      "kok_alarm_tipi": "disk_full",
+      "baslangic": "2026-09-10 02:05:06",
+      "bitis": "2026-09-10 02:25:15",
+      "alarm_sayisi": 167,
+      "etkilenen_servisler": [
+        "billing-db",
+        "billing-service",
+        "invoice-batch",
+        "order-service",
+        "payment-service"
+      ],
+      "etkilenen_host_sayisi": 12,
+      "azami_siddet": 5,
+      "kanit": [
+        "167 alarm, 5 servis, 12 host",
+        "en yuksek siddet 5; sev>=4 olan 141 alarm (84%)",
+        "kok alarm 02:05:06'de; kumenin %100'i bu andan sonra geliyor",
+        "siddetli alarmlarin gelis sirasi: disk_full -> db_write_fail -> ntp_drift -> txn_fail",
+        "bagimlilik grafiginde kokun asagi akisi kumenin %70'ini acikliyor"
+      ],
+      "gerekce": "Kumenin ilk siddetli alarmi billing-db uzerinde disk_full tipinde ve 02:05:06'de uretildi. Sonrasinda gelen alarmlar (disk_full -> db_write_fail -> ntp_drift) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %70'ini acikliyor. Olayin sekli zamana yayilan gelisim (20 dakika). Bu nedenle billing-db turev etki degil, kok neden olarak degerlendirildi.",
+      "guven": "yuksek",
+      "guven_skoru": 0.719,
+      "karsi_hipotez": "charging-service (aciklama orani %61) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
+      "sinirlar": [
+        "Kumenin %30'i kok nedenin asagi akisinda degil; ikinci bir etken olabilir."
+      ],
+      "ayrisma_ile_bolundu": false,
+      "aksiyon": {
+        "aksiyon_id": "AKS-02",
+        "kart_id": "OLAY-02",
+        "sahip": "Veritabani ekibi",
+        "aciklama": "Disk alanini genislet, eski WAL/log dosyalarini temizle (billing-db)",
+        "durum": "acik",
+        "acilis": "2026-09-16T15:14:01",
+        "guncelleme": "",
+        "gecmis": []
+      }
+    },
+    {
+      "kart_id": "OLAY-03",
+      "baslik": "payment-provider-gw kaynakli olay — ext_slow",
+      "kok_neden": "payment-provider-gw",
+      "kok_alarm_tipi": "ext_slow",
+      "baslangic": "2026-09-10 02:40:28",
+      "bitis": "2026-09-10 02:57:35",
+      "alarm_sayisi": 260,
+      "etkilenen_servisler": [
+        "mobile-bff",
+        "order-service",
+        "payment-provider-gw",
+        "payment-service"
+      ],
+      "etkilenen_host_sayisi": 11,
+      "azami_siddet": 5,
+      "kanit": [
+        "260 alarm, 4 servis, 11 host",
+        "en yuksek siddet 5; sev>=4 olan 229 alarm (88%)",
+        "kok alarm 02:40:28'de; kumenin %100'i bu andan sonra geliyor",
+        "siddetli alarmlarin gelis sirasi: ext_unreach -> ext_slow -> timeout -> txn_fail",
+        "bagimlilik grafiginde kokun asagi akisi kumenin %89'ini acikliyor"
+      ],
+      "gerekce": "Kumenin ilk siddetli alarmi payment-provider-gw uzerinde ext_slow tipinde ve 02:40:28'de uretildi. Sonrasinda gelen alarmlar (ext_unreach -> ext_slow -> timeout) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %89'ini acikliyor. Olayin sekli zamana yayilan gelisim (17 dakika). Bu nedenle payment-provider-gw turev etki degil, kok neden olarak degerlendirildi.",
+      "guven": "yuksek",
+      "guven_skoru": 0.858,
+      "karsi_hipotez": "payment-service (aciklama orani %78) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
+      "sinirlar": [],
+      "ayrisma_ile_bolundu": true,
+      "aksiyon": {
+        "aksiyon_id": "AKS-03",
+        "kart_id": "OLAY-03",
+        "sahip": "Entegrasyon ekibi",
+        "aciklama": "Dis saglayici gecikmesini olc, zaman asimi degerlerini gozden gecir (payment-provider-gw)",
+        "durum": "acik",
+        "acilis": "2026-09-16T15:14:01",
+        "guncelleme": "",
+        "gecmis": []
+      }
+    },
+    {
+      "kart_id": "OLAY-04",
+      "baslik": "session-service kaynakli olay — oom_risk",
+      "kok_neden": "session-service",
+      "kok_alarm_tipi": "oom_risk",
+      "baslangic": "2026-09-10 02:42:38",
+      "bitis": "2026-09-10 02:57:42",
+      "alarm_sayisi": 27,
+      "etkilenen_servisler": [
+        "auth-service",
+        "session-service",
+        "web-bff"
+      ],
+      "etkilenen_host_sayisi": 8,
+      "azami_siddet": 5,
+      "kanit": [
+        "27 alarm, 3 servis, 8 host",
+        "en yuksek siddet 5; sev>=4 olan 8 alarm (30%)",
+        "kok alarm 02:42:38'de; kumenin %100'i bu andan sonra geliyor",
+        "siddetli alarmlarin gelis sirasi: oom_risk",
+        "bagimlilik grafiginde kokun asagi akisi kumenin %82'ini acikliyor"
+      ],
+      "gerekce": "Kumenin ilk siddetli alarmi session-service uzerinde oom_risk tipinde ve 02:42:38'de uretildi. Sonrasinda gelen alarmlar (oom_risk) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %82'ini acikliyor. Olayin sekli zamana yayilan gelisim (15 dakika). Bu nedenle session-service turev etki degil, kok neden olarak degerlendirildi.",
+      "guven": "orta",
+      "guven_skoru": 0.575,
+      "karsi_hipotez": "subscriber-service (aciklama orani %3) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
+      "sinirlar": [
+        "Kume kucuk; istatistiksel dayanak sinirli."
+      ],
+      "ayrisma_ile_bolundu": true,
+      "aksiyon": {
+        "aksiyon_id": "AKS-04",
+        "kart_id": "OLAY-04",
+        "sahip": "Uygulama ekibi",
+        "aciklama": "Heap kullanimini incele, servisi kontrollu yeniden baslat (session-service)",
+        "durum": "acik",
+        "acilis": "2026-09-16T15:14:01",
+        "guncelleme": "",
+        "gecmis": []
+      }
+    },
+    {
+      "kart_id": "OLAY-05",
+      "baslik": "subscriber-db kaynakli olay — db_conn_pool",
+      "kok_neden": "subscriber-db",
+      "kok_alarm_tipi": "db_conn_pool",
+      "baslangic": "2026-09-10 03:09:19",
+      "bitis": "2026-09-10 03:27:14",
+      "alarm_sayisi": 67,
+      "etkilenen_servisler": [
+        "reconciliation-batch",
+        "report-batch",
+        "subscriber-db",
+        "subscriber-service"
+      ],
+      "etkilenen_host_sayisi": 8,
+      "azami_siddet": 4,
+      "kanit": [
+        "67 alarm, 4 servis, 8 host",
+        "en yuksek siddet 4; sev>=4 olan 34 alarm (51%)",
+        "kok alarm 03:09:19'de; kumenin %100'i bu andan sonra geliyor",
+        "siddetli alarmlarin gelis sirasi: db_conn_pool -> batch_slow -> cpu_high -> network_flap",
+        "bagimlilik grafiginde kokun asagi akisi kumenin %89'ini acikliyor"
+      ],
+      "gerekce": "Kumenin ilk siddetli alarmi subscriber-db uzerinde db_conn_pool tipinde ve 03:09:19'de uretildi. Sonrasinda gelen alarmlar (db_conn_pool -> batch_slow -> cpu_high) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %89'ini acikliyor. Olayin sekli zamana yayilan gelisim (18 dakika). Bu nedenle subscriber-db turev etki degil, kok neden olarak degerlendirildi.",
+      "guven": "yuksek",
+      "guven_skoru": 0.875,
+      "karsi_hipotez": "batch-scheduler (aciklama orani %37) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
+      "sinirlar": [],
+      "ayrisma_ile_bolundu": false,
+      "aksiyon": {
+        "aksiyon_id": "AKS-05",
+        "kart_id": "OLAY-05",
+        "sahip": "Veritabani ekibi",
+        "aciklama": "Baglanti havuzu limitini ve acik oturumlari incele (subscriber-db)",
+        "durum": "acik",
+        "acilis": "2026-09-16T15:14:01",
+        "guncelleme": "",
+        "gecmis": []
+      }
+    }
+  ]
+}
