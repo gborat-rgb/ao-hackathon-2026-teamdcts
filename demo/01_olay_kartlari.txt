@@ -44,6 +44,11 @@ OLAY-01  dc1/rack-A kabini kaynakli olay — pkt_loss  [ayrisma testi ile ayrild
     dns-resolver (aciklama orani %76) — kok olarak bu da degerlendirildi,
     ancak daha gec basladigi icin ikinci sirada.
 
+  SAHA GOREVI
+    dc1 / rack-A  —  9 host (5 kritik), azami siddet 5
+      ao-003-api, ao-009-auth, ao-015-subscriber, ao-021-charging,
+      ao-027-order, ao-033-subscriber, ao-039-message, ao-045-dns, …
+
   AKSIYON AKS-01  [ACIK]
     Sahip : Ag ekibi
     Kabin ust switch'ini ve uplink durumunu kontrol et (dc1/rack-A kabini)
@@ -78,6 +83,14 @@ OLAY-02  billing-db kaynakli olay — disk_full
   KARSI HIPOTEZ
     charging-service (aciklama orani %61) — kok olarak bu da
     degerlendirildi, ancak daha gec basladigi icin ikinci sirada.
+
+  SAHA GOREVI
+    dc2 / rack-A  —  3 host (3 kritik), azami siddet 5
+      ao-018-billing, ao-024-payment, ao-036-billing
+    dc1 / rack-B  —  3 host (2 kritik), azami siddet 5
+      ao-019-billing, ao-025-payment, ao-049-invoice
+    dc2 / rack-C  —  2 host (2 kritik), azami siddet 5
+      ao-020-billing, ao-026-payment
 
   SINIRLAR
     Kumenin %30'i kok nedenin asagi akisinda degil; ikinci bir etken
@@ -118,6 +131,14 @@ OLAY-03  payment-provider-gw kaynakli olay — ext_slow  [ayrisma testi ile ayri
     payment-service (aciklama orani %78) — kok olarak bu da degerlendirildi,
     ancak daha gec basladigi icin ikinci sirada.
 
+  SAHA GOREVI
+    dc2 / rack-A  —  3 host (3 kritik), azami siddet 5
+      ao-006-mobile, ao-024-payment, ao-054-payment
+    dc2 / rack-B  —  3 host (2 kritik), azami siddet 5
+      ao-004-mobile, ao-028-order, ao-052-payment
+    dc1 / rack-C  —  2 host (2 kritik), azami siddet 5
+      ao-005-mobile, ao-053-payment
+
   AKSIYON AKS-03  [ACIK]
     Sahip : Entegrasyon ekibi
     Dis saglayici gecikmesini olc, zaman asimi degerlerini gozden gecir
@@ -153,6 +174,12 @@ OLAY-04  session-service kaynakli olay — oom_risk  [ayrisma testi ile ayrildi]
   KARSI HIPOTEZ
     subscriber-service (aciklama orani %3) — kok olarak bu da
     degerlendirildi, ancak daha gec basladigi icin ikinci sirada.
+
+  SAHA GOREVI
+    dc1 / rack-B  —  2 host (1 kritik), azami siddet 5
+      ao-007-web, ao-013-session
+    dc2 / rack-C  —  2 host (1 kritik), azami siddet 5
+      ao-008-web, ao-014-session
 
   SINIRLAR
     Kume kucuk; istatistiksel dayanak sinirli.
@@ -192,6 +219,12 @@ OLAY-05  subscriber-db kaynakli olay — db_conn_pool
   KARSI HIPOTEZ
     batch-scheduler (aciklama orani %37) — kok olarak bu da degerlendirildi,
     ancak daha gec basladigi icin ikinci sirada.
+
+  SAHA GOREVI
+    dc1 / rack-A  —  3 host (2 kritik), azami siddet 4
+      ao-015-subscriber, ao-033-subscriber, ao-051-report
+    dc2 / rack-C  —  2 host (1 kritik), azami siddet 4
+      ao-032-subscriber, ao-050-reconciliation
 
   AKSIYON AKS-05  [ACIK]
     Sahip : Veritabani ekibi

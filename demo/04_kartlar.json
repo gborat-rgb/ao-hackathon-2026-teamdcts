@@ -56,6 +56,25 @@
       "karsi_hipotez": "dns-resolver (aciklama orani %76) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
       "sinirlar": [],
       "ayrisma_ile_bolundu": true,
+      "saha_gorevi": [
+        {
+          "konum": "dc1 / rack-A",
+          "host_sayisi": 9,
+          "kritik_host": 5,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-003-api",
+            "ao-009-auth",
+            "ao-015-subscriber",
+            "ao-021-charging",
+            "ao-027-order",
+            "ao-033-subscriber",
+            "ao-039-message",
+            "ao-045-dns"
+          ],
+          "host_kirpildi": true
+        }
+      ],
       "aksiyon": {
         "aksiyon_id": "AKS-01",
         "kart_id": "OLAY-01",
@@ -99,6 +118,43 @@
         "Kumenin %30'i kok nedenin asagi akisinda degil; ikinci bir etken olabilir."
       ],
       "ayrisma_ile_bolundu": false,
+      "saha_gorevi": [
+        {
+          "konum": "dc2 / rack-A",
+          "host_sayisi": 3,
+          "kritik_host": 3,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-018-billing",
+            "ao-024-payment",
+            "ao-036-billing"
+          ],
+          "host_kirpildi": false
+        },
+        {
+          "konum": "dc1 / rack-B",
+          "host_sayisi": 3,
+          "kritik_host": 2,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-019-billing",
+            "ao-025-payment",
+            "ao-049-invoice"
+          ],
+          "host_kirpildi": false
+        },
+        {
+          "konum": "dc2 / rack-C",
+          "host_sayisi": 2,
+          "kritik_host": 2,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-020-billing",
+            "ao-026-payment"
+          ],
+          "host_kirpildi": false
+        }
+      ],
       "aksiyon": {
         "aksiyon_id": "AKS-02",
         "kart_id": "OLAY-02",
@@ -139,6 +195,43 @@
       "karsi_hipotez": "payment-service (aciklama orani %78) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
       "sinirlar": [],
       "ayrisma_ile_bolundu": true,
+      "saha_gorevi": [
+        {
+          "konum": "dc2 / rack-A",
+          "host_sayisi": 3,
+          "kritik_host": 3,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-006-mobile",
+            "ao-024-payment",
+            "ao-054-payment"
+          ],
+          "host_kirpildi": false
+        },
+        {
+          "konum": "dc2 / rack-B",
+          "host_sayisi": 3,
+          "kritik_host": 2,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-004-mobile",
+            "ao-028-order",
+            "ao-052-payment"
+          ],
+          "host_kirpildi": false
+        },
+        {
+          "konum": "dc1 / rack-C",
+          "host_sayisi": 2,
+          "kritik_host": 2,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-005-mobile",
+            "ao-053-payment"
+          ],
+          "host_kirpildi": false
+        }
+      ],
       "aksiyon": {
         "aksiyon_id": "AKS-03",
         "kart_id": "OLAY-03",
@@ -180,6 +273,30 @@
         "Kume kucuk; istatistiksel dayanak sinirli."
       ],
       "ayrisma_ile_bolundu": true,
+      "saha_gorevi": [
+        {
+          "konum": "dc1 / rack-B",
+          "host_sayisi": 2,
+          "kritik_host": 1,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-007-web",
+            "ao-013-session"
+          ],
+          "host_kirpildi": false
+        },
+        {
+          "konum": "dc2 / rack-C",
+          "host_sayisi": 2,
+          "kritik_host": 1,
+          "azami_siddet": 5,
+          "hostlar": [
+            "ao-008-web",
+            "ao-014-session"
+          ],
+          "host_kirpildi": false
+        }
+      ],
       "aksiyon": {
         "aksiyon_id": "AKS-04",
         "kart_id": "OLAY-04",
@@ -220,6 +337,31 @@
       "karsi_hipotez": "batch-scheduler (aciklama orani %37) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
       "sinirlar": [],
       "ayrisma_ile_bolundu": false,
+      "saha_gorevi": [
+        {
+          "konum": "dc1 / rack-A",
+          "host_sayisi": 3,
+          "kritik_host": 2,
+          "azami_siddet": 4,
+          "hostlar": [
+            "ao-015-subscriber",
+            "ao-033-subscriber",
+            "ao-051-report"
+          ],
+          "host_kirpildi": false
+        },
+        {
+          "konum": "dc2 / rack-C",
+          "host_sayisi": 2,
+          "kritik_host": 1,
+          "azami_siddet": 4,
+          "hostlar": [
+            "ao-032-subscriber",
+            "ao-050-reconciliation"
+          ],
+          "host_kirpildi": false
+        }
+      ],
       "aksiyon": {
         "aksiyon_id": "AKS-05",
         "kart_id": "OLAY-05",

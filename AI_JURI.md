@@ -1,7 +1,7 @@
 # AI Jüri Özeti
 
 **Takım:** Fail-i Over · **Senaryo:** S-A1 Alarm Fırtınası
-**Sonuç:** 3000 alarm → 5 olay kartı · 600× indirgeme · 0 kayıp · 39/39 test
+**Sonuç:** 3000 alarm → 5 olay kartı · 600× indirgeme · 0 kayıp · 3,1 dk ortalama tespit · 57/57 test
 
 ---
 
@@ -88,7 +88,7 @@ Dört aşama, her biri sayı üretiyor:
 | Üretilen kart | 5 (kriter ≤15) | `test_en_fazla_onbes_kart` |
 | İndirgeme | 600× | 3000 / 5 |
 | Uçtan uca süre | 0,625 sn | 7 koşu ortalaması, Python 3.12.14 |
-| Test | 39/39 | `pytest tests/ -q` |
+| Test | 57/57 | `pytest tests/ -q` |
 
 ### Bulunan beş olay
 
@@ -171,6 +171,56 @@ Demoda bu anahtar canlı olarak kapatılıp açılıyor.
 | Kök aday sıralaması | `src/clustering.py` — `_kok_adaylari()` |
 | Gerekçeli son muhasebe | `src/pipeline.py` — `calistir()` |
 | Testle sabitlenmesi | `tests/test_pipeline.py::test_session_service_payment_ile_birlesmiyor` |
+
+---
+
+## 3b. Otomasyon ve mobilite eklentileri
+
+X-Factor'ün üstüne, jürinin iki odak alanına karşılık gelen iki yetenek
+eklendi. İkisi de mevcut boru hattının **üstüne** oturuyor; çekirdek
+algoritma değişmedi.
+
+### Erken tespit — "araç o gece canlı çalışsaydı?"
+
+Boru hattı artan zaman dilimleri üzerinde tekrar çalıştırılıyor; ölçülen
+şey her kök nedenin ilk kez kart olarak belirdiği an.
+
+| Kart oluştu | Kök neden | Olay başı | Gecikme |
+|---|---|---|---|
+| 01:44:20 | dc1/rack-A kabini | 01:42:13 | **2 dk 07 sn** |
+| 02:06:20 | billing-db | 02:05:06 | **1 dk 14 sn** |
+| 02:42:20 | payment-provider-gw | 02:40:28 | **1 dk 52 sn** |
+| 02:46:20 | session-service | 02:42:38 | 3 dk 42 sn |
+| 03:10:20 | batch-scheduler | 03:05:28 | 4 dk 52 sn · *ara hipotez* |
+| 03:14:20 | subscriber-db | 03:09:19 | 5 dk 01 sn |
+
+**Ortalama tespit gecikmesi 3,1 dakika.** Toplu koşunun bulduğu beş kökün
+beşi de canlı akışta yakalanıyor — `tests/test_erken_tespit_ve_saha.py::test_toplu_kosudaki_her_kok_replayde_de_yakalaniyor`
+bunu sabitliyor.
+
+Kabin arızasında alarm seli tepe noktasına 01:48'de ulaşıyor (iki dakikada
+138 alarm); kart 01:44'te zaten açık.
+
+**Dürüstlük notu:** `batch-scheduler` canlı akışta bir süre kök olarak
+görünüp gecenin tamamı okunduğunda `subscriber-db`'ye evriliyor. Bunu
+gizlemiyoruz, `toplu_kosuda_var=False` ile işaretliyoruz. Aynı modelleme
+sınırının (yük vs arıza yayılımı) canlı akıştaki görünümü.
+
+Kod: `src/replay.py` · Kanıt: `demo/11_erken_tespit.txt`
+
+### Saha görevi ve mobil görünüm
+
+Kabin ağ arızası masadan çözülmez. Her kart artık nereye gidileceğini
+söylüyor — veri merkezi/kabin, host listesi, kaçının kritik iş yükü taşıdığı.
+Bu bilgi veride zaten vardı, kullanılmıyordu.
+
+Arayüzde kenar çubuğundaki mobil anahtarı sekmeleri kapatıp tek kolonlu sade
+bir liste veriyor; Streamlit LAN'da yayınlandığı için gerçek telefondan
+açılabiliyor.
+
+Kod: `src/cards.py` → `_saha_gorevi()` · `src/app.py` → `_mobil_gorunum()`
+
+---
 
 ### Bonus gereksinimler
 

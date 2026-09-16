@@ -22,13 +22,25 @@ class Sonuc:
 
 
 def calistir(dizin=None, esik=VARSAYILAN_ESIK, ayrisma_acik=True,
-             asgari_kume=ASGARI_KUME) -> Sonuc:
+             asgari_kume=ASGARI_KUME, veri=None) -> Sonuc:
+    """Boru hattini uctan uca calistirir.
+
+    `veri`, onceden yuklenmis `(alarmlar, envanter, grafik)` uclusudur.
+    Erken tespit (src/replay.py) ayni veriyi onlarca kez dilimleyerek
+    calistirdigi icin diskten tekrar okumayi ve grafigi yeniden kurmayi
+    gereksiz kilar. Verilmezse davranis degismez, veri diskten okunur.
+    """
     t0 = time.time()
 
-    if dizin is None:
+    if veri is not None:
+        alarmlar, envanter, grafik = veri
+    elif dizin is None:
         alarmlar, envanter, grafik = veriyi_hazirla()
     else:
         alarmlar, envanter, grafik = veriyi_hazirla(dizin)
+
+    if len(alarmlar) == 0:
+        raise ValueError("islenecek alarm yok; bos veri ile calistirilamaz")
 
     skorlanmis = skorla(alarmlar, esik=esik)
     sinyaller = skorlanmis[skorlanmis["sinyal"]]

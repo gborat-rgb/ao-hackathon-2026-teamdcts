@@ -12,6 +12,7 @@ import sys
 
 from .ingest import VeriDogrulamaHatasi
 from .pipeline import ayrisma_karsilastirmasi, calistir
+from .replay import VARSAYILAN_ADIM_SN, erken_tespit
 
 # Windows konsolu varsayilan olarak cp1252 kullaniyor ve Turkce karakterlerde
 # kiriliyor. Ciktiyi UTF-8'e sabitliyoruz.
@@ -48,6 +49,18 @@ def _kart_bas(k):
     print("  KARSI HIPOTEZ")
     for satir in _sar(k.karsi_hipotez, 72):
         print("    %s" % satir)
+    if k.saha_gorevi:
+        print()
+        print("  SAHA GOREVI")
+        for g in k.saha_gorevi:
+            print("    %s  —  %d host (%d kritik), azami siddet %d"
+                  % (g["konum"], g["host_sayisi"], g["kritik_host"],
+                     g["azami_siddet"]))
+            hostlar = ", ".join(g["hostlar"])
+            if g["host_kirpildi"]:
+                hostlar += ", …"
+            for satir in _sar(hostlar, 66):
+                print("      %s" % satir)
     if k.sinirlar:
         print()
         print("  SINIRLAR")
@@ -87,6 +100,10 @@ def main(argv=None):
     p.add_argument("--esik", type=float, default=None, help="sinyal esigi")
     p.add_argument("--ayrisma-kapali", action="store_true",
                    help="ayrisma testini devre disi birak")
+    p.add_argument("--erken-tespit", action="store_true",
+                   help="geceyi yeniden oynat, her kartin olusma anini olc")
+    p.add_argument("--adim", type=int, default=VARSAYILAN_ADIM_SN,
+                   metavar="SN", help="erken tespit dilim adimi (saniye)")
     a = p.parse_args(argv)
 
     try:
@@ -94,9 +111,44 @@ def main(argv=None):
     except VeriDogrulamaHatasi as exc:
         print("HATA: %s" % exc, file=sys.stderr)
         return 2
+    except ValueError as exc:
+        print("HATA: %s" % exc, file=sys.stderr)
+        return 2
+
+
+def _erken_tespit_bas(adim_sn, ayrisma_acik):
+    s = erken_tespit(adim_sn=adim_sn, ayrisma_acik=ayrisma_acik)
+    print(CIZGI)
+    print("ERKEN TESPIT — gece yeniden oynatildi")
+    print(CIZGI)
+    print("  Dilim adimi      : %d sn" % s.adim_sn)
+    print("  Calistirilan kosu: %d" % s.dilim_sayisi)
+    print("  Toplu kosudaki kart: %d" % s.toplu_kart_sayisi)
+    if s.ortalama_gecikme_sn is not None:
+        print("  Ortalama gecikme : %.0f sn (%.1f dk)"
+              % (s.ortalama_gecikme_sn, s.ortalama_gecikme_sn / 60))
+    print()
+    print("  %-9s %-22s %-9s %s" % ("KART ANI", "KOK NEDEN", "OLAY BASI", "GECIKME"))
+    for k in s.kayitlar:
+        ek = "" if k.toplu_kosuda_var else "   <- ara hipotez"
+        print("  %-9s %-22s %-9s %s%s"
+              % (k.kart_olusma_ani.strftime("%H:%M:%S"), k.kok_neden,
+                 k.kok_ilk_alarm.strftime("%H:%M:%S"), k.gecikme_metni, ek))
+    print()
+    ara = [k for k in s.kayitlar if not k.toplu_kosuda_var]
+    if ara:
+        print("  Ara hipotez: canli akista bir sure kok gorunup gecenin tamami")
+        print("  okundugunda baska bir koke evrilen aday. Gizlenmiyor, isaretleniyor.")
+        print()
+    print("  Not: gecikme, olayin ilk alarmi ile o olayin ilk kez kart olarak")
+    print("  belirdigi an arasindaki fark. Dilim adimi kadar yukari yuvarlanir.")
+    return 0
 
 
 def _komutu_calistir(a):
+    if a.erken_tespit:
+        return _erken_tespit_bas(a.adim, not a.ayrisma_kapali)
+
     if a.x_factor:
         k = ayrisma_karsilastirmasi()
         print(CIZGI)

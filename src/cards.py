@@ -87,6 +87,7 @@ class OlayKarti:
     karsi_hipotez: str
     sinirlar: List[str]
     ayrisma_ile_bolundu: bool
+    saha_gorevi: List[dict] = field(default_factory=list)
     aksiyon: Optional[Aksiyon] = None
 
     def sozluk(self):
@@ -214,6 +215,59 @@ def _sinirlar(kume, pencere_bitisi) -> List[str]:
     return s
 
 
+# Saha gorevinde listelenecek azami fiziksel konum. Uzun liste, sahaya
+# cikan muhendise yardim etmek yerine karti okunmaz yapar.
+SAHA_AZAMI_KONUM = 3
+
+# Bir konumun saha gorevine girmesi icin kumedeki asgari host payi.
+# Tek bir host'un tasmasi kabin gorevi uretmemeli.
+SAHA_ASGARI_HOST_PAYI = 0.15
+
+
+def _saha_gorevi(kume) -> List[dict]:
+    """Sahaya cikacak muhendis icin fiziksel konum bilgisi.
+
+    Kabin ag arizasi gibi olaylar masadan cozulmez; birinin veri merkezine
+    gitmesi gerekir. Konum, host listesi ve is kritikligi zaten veride
+    (`veri_merkezi`, `kabin`, `host`, `is_kritikligi`) duruyor — burada
+    karta tasiniyor.
+
+    Konumlar etkilenen host sayisina gore siralanir; kritik is yuku tasiyan
+    host'lar ayrica sayilir cunku mudahale sirasini bu belirler.
+    """
+    a = kume.alarmlar
+    if a.empty or "veri_merkezi" not in a.columns:
+        return []
+
+    toplam_host = a["host"].nunique()
+    if not toplam_host:
+        return []
+
+    gorevler = []
+    for (dc, kabin), g in a.groupby(["veri_merkezi", "kabin"]):
+        hostlar = sorted(g["host"].unique())
+        pay = len(hostlar) / toplam_host
+        if pay < SAHA_ASGARI_HOST_PAYI:
+            continue
+
+        if "is_kritikligi" in g.columns:
+            kritik = g[g["is_kritikligi"] == "kritik"]["host"].nunique()
+        else:
+            kritik = 0
+
+        gorevler.append({
+            "konum": "%s / %s" % (dc, kabin),
+            "host_sayisi": len(hostlar),
+            "kritik_host": int(kritik),
+            "azami_siddet": int(g["severity"].max()),
+            "hostlar": hostlar[:8],
+            "host_kirpildi": len(hostlar) > 8,
+        })
+
+    gorevler.sort(key=lambda x: (-x["host_sayisi"], -x["kritik_host"]))
+    return gorevler[:SAHA_AZAMI_KONUM]
+
+
 def kart_uret(kume, grafik, sira: int, pencere_bitisi) -> OlayKarti:
     a = kume.alarmlar
     guven, skor = _guven_seviyesi(
@@ -263,6 +317,7 @@ def kart_uret(kume, grafik, sira: int, pencere_bitisi) -> OlayKarti:
         karsi_hipotez=karsi,
         sinirlar=_sinirlar(kume, pencere_bitisi),
         ayrisma_ile_bolundu=kume.ayrisma_ile_bolundu,
+        saha_gorevi=_saha_gorevi(kume),
         aksiyon=aksiyon,
     )
 

@@ -23,6 +23,7 @@ if str(KOK) not in sys.path:
     sys.path.insert(0, str(KOK))
 
 from src.pipeline import ayrisma_karsilastirmasi, calistir  # noqa: E402
+from src.replay import VARSAYILAN_ADIM_SN, erken_tespit  # noqa: E402
 from src.scoring import VARSAYILAN_ESIK  # noqa: E402
 
 st.set_page_config(page_title="Alarm Firtinasi — Olay Kartlari",
@@ -43,6 +44,13 @@ def _x_factor():
     return ayrisma_karsilastirmasi()
 
 
+@st.cache_data(show_spinner=False)
+def _erken_tespit(adim_sn, ayrisma_acik):
+    # Replay onlarca kosu yapar (~15 sn); onbellek olmadan her etkilesimde
+    # tekrarlanir ve arayuz kullanilamaz hale gelir.
+    return erken_tespit(adim_sn=adim_sn, ayrisma_acik=ayrisma_acik).ozet()
+
+
 def main():
     st.title("🚨 Alarm Firtinasi — Olay Kartlari")
     st.caption(
@@ -59,6 +67,10 @@ def main():
         ayrisma = st.checkbox(
             "Grafik ayrisma testi", value=True,
             help="Kapatirsan ayni anda olan bagimsiz olaylar tek karta birlesir.",
+        )
+        mobil = st.checkbox(
+            "📱 Mobil / saha gorunumu", value=False,
+            help="Telefonda okunacak sade liste: kok neden, konum, aksiyon.",
         )
         st.divider()
         st.caption(
@@ -83,17 +95,24 @@ def main():
     )
     k4.metric("Indirgeme", f"{metrikler['indirgeme_carpani']:.0f}x")
 
+    if mobil:
+        _mobil_gorunum(kartlar)
+        return
+
     sekmeler = st.tabs(
-        ["📋 Olay Kartlari", "🔬 X-Factor", "🔇 Gurultu Denetimi", "📈 Zaman Cizelgesi"]
+        ["📋 Olay Kartlari", "⏱️ Erken Tespit", "🔬 X-Factor",
+         "🔇 Gurultu Denetimi", "📈 Zaman Cizelgesi"]
     )
 
     with sekmeler[0]:
         _kartlar_sekmesi(kartlar)
     with sekmeler[1]:
-        _x_factor_sekmesi()
+        _erken_tespit_sekmesi(ayrisma)
     with sekmeler[2]:
-        _gurultu_sekmesi(alarmlar)
+        _x_factor_sekmesi()
     with sekmeler[3]:
+        _gurultu_sekmesi(alarmlar)
+    with sekmeler[4]:
         _zaman_sekmesi(alarmlar, kartlar)
 
 
@@ -146,6 +165,19 @@ def _kartlar_sekmesi(kartlar):
                 st.markdown("**Etkilenen servisler**")
                 st.markdown(" ".join(f"`{s}`" for s in k.etkilenen_servisler))
 
+                if k.saha_gorevi:
+                    st.divider()
+                    st.markdown("#### 📍 Saha gorevi")
+                    for g in k.saha_gorevi:
+                        st.markdown(
+                            f"**{g['konum']}** — {g['host_sayisi']} host "
+                            f"({g['kritik_host']} kritik)"
+                        )
+                        hostlar = " ".join(f"`{h}`" for h in g["hostlar"])
+                        if g["host_kirpildi"]:
+                            hostlar += " …"
+                        st.markdown(hostlar)
+
                 st.divider()
                 st.markdown("#### Aksiyon")
                 st.markdown(
@@ -173,6 +205,124 @@ def _kartlar_sekmesi(kartlar):
                     st.caption("Durum gecmisi")
                     for g in gecmis:
                         st.caption(f"· {g}")
+
+
+def _mobil_gorunum(kartlar):
+    """Telefonda okunacak sade liste — sahaya cikan muhendis icin.
+
+    Genis ekran duzeni telefonda okunamiyor; burada her kart tek kolonda,
+    yalnizca harekete gecmek icin gereken alanlarla veriliyor: kok neden,
+    fiziksel konum, sahip ve durum.
+    """
+    st.info("📱 Saha gorunumu — sade liste. Tam analiz icin kapatin.")
+
+    if "aksiyon_durum" not in st.session_state:
+        st.session_state.aksiyon_durum = {}
+
+    for k in kartlar:
+        durum = st.session_state.aksiyon_durum.get(k.kart_id, "acik")
+        st.markdown(f"### {DURUM_RENK[durum]} {k.kart_id}")
+        st.markdown(f"**{k.kok_neden}** · `{k.kok_alarm_tipi}`")
+        st.caption(
+            f"{k.baslangic[11:16]}–{k.bitis[11:16]} · {k.alarm_sayisi} alarm · "
+            f"siddet {k.azami_siddet} · guven {k.guven}"
+        )
+
+        if k.saha_gorevi:
+            for g in k.saha_gorevi:
+                st.markdown(
+                    f"📍 **{g['konum']}** — {g['host_sayisi']} host "
+                    f"({g['kritik_host']} kritik)"
+                )
+        else:
+            st.markdown("📍 Fiziksel saha gorevi yok — uzaktan mudahale")
+
+        st.markdown(f"🧰 **{k.aksiyon.sahip}** · {k.aksiyon.aciklama}")
+
+        yeni = st.radio(
+            "Durum", ["acik", "devam_ediyor", "kapandi"],
+            index=["acik", "devam_ediyor", "kapandi"].index(durum),
+            key=f"mobil_durum_{k.kart_id}", horizontal=True,
+            label_visibility="collapsed",
+        )
+        if yeni != durum:
+            st.session_state.aksiyon_durum[k.kart_id] = yeni
+            st.rerun()
+
+        st.divider()
+
+
+def _erken_tespit_sekmesi(ayrisma_acik):
+    st.subheader("Gece yeniden oynatiliyor")
+    st.markdown(
+        "Boru hatti, gecenin tamami yerine **artan zaman dilimleri** uzerinde "
+        "tekrar calistiriliyor. Olculen sey: arac o gece canli calisiyor "
+        "olsaydi her kok nedeni **kacinci dakikada** soylerdi."
+    )
+
+    adim = st.select_slider(
+        "Dilim adimi (saniye)", options=[60, 120, 300],
+        value=VARSAYILAN_ADIM_SN,
+        help="Ince adim gecikmeyi keskinlestirir, sureyi uzatir.",
+    )
+
+    with st.spinner("Gece yeniden oynatiliyor…"):
+        s = _erken_tespit(adim, ayrisma_acik)
+
+    if not s["kayitlar"]:
+        st.warning("Bu ayarlarla hicbir kart olusmadi.")
+        return
+
+    a, b, c = st.columns(3)
+    a.metric("Calistirilan kosu", s["dilim_sayisi"])
+    b.metric("Tespit edilen kok", s["tespit_edilen_kok"])
+    ort = s["ortalama_gecikme_sn"]
+    c.metric("Ortalama gecikme", f"{ort / 60:.1f} dk" if ort else "—")
+
+    en_hizli = min(s["kayitlar"], key=lambda k: k["gecikme_sn"])
+    st.success(
+        f"En hizli tespit: **{en_hizli['kok_neden']}** — olay basladiktan "
+        f"**{en_hizli['gecikme_metni']}** sonra kart olarak acildi."
+    )
+
+    df = pd.DataFrame(s["kayitlar"])
+    st.dataframe(
+        df[["kart_olusma_ani", "kok_neden", "kok_alarm_tipi", "kok_ilk_alarm",
+            "gecikme_metni", "kart_alarm_sayisi", "toplu_kosuda_var"]]
+        .rename(columns={
+            "kart_olusma_ani": "kart olustu",
+            "kok_neden": "kok neden",
+            "kok_alarm_tipi": "imza",
+            "kok_ilk_alarm": "olay basi",
+            "gecikme_metni": "gecikme",
+            "kart_alarm_sayisi": "alarm",
+            "toplu_kosuda_var": "toplu kosuda var",
+        }),
+        width="stretch", hide_index=True,
+    )
+
+    ara = df[~df["toplu_kosuda_var"]]
+    if not ara.empty:
+        st.warning(
+            "**Ara hipotez:** " + ", ".join(ara["kok_neden"]) +
+            " — canli akista bir sure kok olarak gorundu, gecenin tamami "
+            "okundugunda baska bir koke evrildi. Gizlenmiyor, isaretleniyor."
+        )
+
+    fig = px.bar(
+        df.sort_values("gecikme_sn"), x="gecikme_sn", y="kok_neden",
+        orientation="h", color="toplu_kosuda_var",
+        color_discrete_map={True: "#2a9d8f", False: "#e9c46a"},
+        labels={"gecikme_sn": "tespit gecikmesi (sn)", "kok_neden": "",
+                "toplu_kosuda_var": "toplu kosuda var"},
+    )
+    fig.update_layout(height=320)
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.caption(
+        "Gecikme, olayin ilk alarmi ile o olayin ilk kez kart olarak "
+        "belirdigi an arasindaki fark; dilim adimi kadar yukari yuvarlanir."
+    )
 
 
 def _x_factor_sekmesi():

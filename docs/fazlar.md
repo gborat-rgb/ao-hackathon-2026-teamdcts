@@ -158,3 +158,34 @@ görüntüsü `demo/` altına alındı ve adımlar `demo/demo-notes.md` içinde 
   gözlem penceresine bağlandı; iki ardışık çıktı byte düzeyinde aynı.
 
 **Kanıt:** `docs/qa_report.md`, `demo/05_test_sonuclari.txt`, 39/39 test.
+
+---
+
+## Faz 9 — Otomasyon ve mobilite eklentileri (16:05 – 17:05)
+
+**Durum:** Tamamlandı
+
+**Çıktı:** `src/replay.py` (yeni), `src/cards.py`, `src/app.py`, `src/cli.py`,
+`tests/test_erken_tespit_ve_saha.py` (yeni, 18 test)
+
+Codex'in final kalite kapısından sonraki HEAD üzerine, mevcut mimariye
+dokunmadan iki yetenek eklendi.
+
+**O1 — Erken tespit.** Boru hattı artan zaman dilimleri üzerinde tekrar
+çalıştırılıyor. Tek entegrasyon noktası: `calistir()`'a geriye uyumlu bir
+`veri` parametresi; 59 dilim × diskten okuma kabul edilemez olurdu.
+
+*Düzeltme:* İlk sürümde gecikme referansı olarak kökün veri setindeki ilk
+`sev≥4` alarmı alınmıştı ve gecikmeler 10–90 dakika çıkıyordu. Sebep: aynı
+servis/kabin gece boyunca arka plan gürültüsü de üretiyor. Referans kartın
+kendi başlangıcına çevrildi; gerçek değerler 1–5 dakika aralığına oturdu.
+
+**M1 — Saha görevi ve mobil görünüm.** `veri_merkezi`, `kabin`, `host`,
+`is_kritikligi` alanları veride duruyordu ama kartlarda kullanılmıyordu;
+yüzeye çıkarıldı. Arayüze tek kolonlu mobil görünüm eklendi.
+
+**Doğrulama:** Codex'in 39 testi değişmeden geçiyor; 18 yeni testle toplam
+**57/57**. JSON determinizmi korundu (iki ardışık koşu byte düzeyinde aynı).
+
+**Ölçülen:** Ortalama tespit gecikmesi 3,1 dk, en hızlı 1 dk 14 sn, toplu
+koşudaki beş kökün beşi de canlı akışta yakalanıyor.

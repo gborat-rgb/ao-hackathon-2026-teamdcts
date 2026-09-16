@@ -155,10 +155,57 @@ Güven skoru: `0.55·açıklama + 0.25·imza + 0.20·min(boyut/100, 1)`.
 Aksiyonlar kök alarm tipine göre sahiplendirilir (`AKSIYON_KATALOGU`) ve
 `acik → devam_ediyor → kapandi` geçişlerini zaman damgalı geçmişle tutar.
 
+**Saha görevi** (`_saha_gorevi`) kartın alarmlarından fiziksel konum çıkarır:
+hangi veri merkezi/kabin, kaç host, kaçı kritik iş yükü taşıyor. Veri zaten
+`alarmlar` içindeydi (`veri_merkezi`, `kabin`, `host`, `is_kritikligi`);
+burada yüzeye çıkıyor. Konumlar host sayısına göre sıralanır, azami üç konum
+verilir (`SAHA_AZAMI_KONUM`) ve %15 altı pay tutan konumlar elenir
+(`SAHA_ASGARI_HOST_PAYI`) — tek host'un taşması kabin görevi üretmemeli.
+Kolon eksikse sessizce boş liste döner, kart üretimi kırılmaz.
+
+### `src/replay.py` — erken tespit
+
+Boru hattını **artan zaman dilimleri** üzerinde tekrar çalıştırır ve her kök
+nedenin ilk kez kart olarak belirdiği anı ölçer. Yeni algoritma yoktur; aynı
+`calistir()` çağrılır, tek fark girdinin `t` anına kırpılmış olmasıdır —
+yani sonuç, canlı çalışan bir sistemin o anda görebileceğiyle aynıdır.
+
+Entegrasyon noktası minimaldir: `calistir()`'a geriye uyumlu bir `veri`
+parametresi eklendi. Verilirse diskten okuma ve grafik kurulumu atlanır.
+59 dilim × diskten okuma kabul edilemez olurdu; tek yükleme ile ~14 saniye.
+
+Üç kenar durumu ele alınıyor:
+
+- `ASGARI_DILIM_ALARMI` (30) altındaki dilimler atlanır — Poisson taban hızı
+  çok az gözlemle anlamsızlaşır, boş dilim bölme hatası üretir.
+- `adim_sn ≤ 0` reddedilir.
+- Toplu koşuda olup replay'de hiç yakalanamayan kök kalırsa raporlanır;
+  bu, canlı sistemin kaçıracağı olay demektir.
+
+**Ara hipotez kavramı.** Canlı akışta bir süre kök olarak görünüp gecenin
+tamamı okunduğunda başka bir köke evrilen adaylar `toplu_kosuda_var=False`
+ile işaretlenir. `batch-scheduler` böyle çıkıyor — 03:10'da kök, sonra
+`subscriber-db`'ye evriliyor. Gizlenmiyor; bu §7'deki yük/arıza yayılımı
+modelleme sınırının canlı akıştaki görünümü.
+
+Gecikme referansı **kartın kendi başlangıcı**, kökün veri setindeki ilk
+alarmı değil. İlk denemede ikincisi kullanıldı ve gecikmeler 10–90 dakika
+çıktı; sebebi aynı servis/kabinin gece boyunca arka plan gürültüsü de
+üretmesiydi.
+
 ### `src/app.py` — Streamlit arayüzü
 
-Dört sekme: Olay Kartları (aksiyon durumu değiştirilebilir), X-Factor
-karşılaştırması, Gürültü Denetimi, Zaman Çizelgesi.
+Beş sekme: Olay Kartları (aksiyon durumu değiştirilebilir), **Erken Tespit**,
+X-Factor karşılaştırması, Gürültü Denetimi, Zaman Çizelgesi.
+
+Kenar çubuğundaki **mobil / saha görünümü** anahtarı sekmeleri kapatıp tek
+kolonlu sade bir liste verir: kök neden, fiziksel konum, sahip, durum.
+Geniş ekran düzeni telefonda okunmuyor; sahaya çıkan mühendisin ihtiyacı
+zaten bu dört alan. Streamlit LAN'da yayınlandığı için gerçek telefondan
+açılabiliyor.
+
+Erken tespit sekmesi `@st.cache_data` ile önbelleklenir; replay onlarca koşu
+yapar (~14 sn) ve önbelleksiz her etkileşimde tekrarlanırdı.
 
 Kenar çubuğundaki **sinyal eşiği** ve **ayrışma testi** anahtarları canlı
 demoda parametrelerin etkisini göstermek için duruyor.

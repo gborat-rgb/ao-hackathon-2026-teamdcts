@@ -26,7 +26,8 @@
       "gurultu_denetimi": "python -m src.cli --gurultu 25",
       "json_cikti": "python -m src.cli --json",
       "web_arayuzu": "streamlit run src/app.py",
-      "testler": "python -m pytest tests/ -q"
+      "testler": "python -m pytest tests/ -q",
+      "erken_tespit": "python -m src.cli --erken-tespit"
     }
   },
   "ai_kullanimi": {
@@ -72,15 +73,48 @@
       "ayrisma_testi_kapali_kart": 4,
       "ayrisma_testi_acik_kart": 5,
       "ayrisma_ile_ortaya_cikan_kok": "session-service",
-      "test_sayisi": 39,
-      "gecen_test": 39
+      "test_sayisi": 57,
+      "gecen_test": 57,
+      "erken_tespit_ortalama_gecikme_sn": 188,
+      "erken_tespit_en_hizli_sn": 74,
+      "erken_tespit_yakalanan_kok": "5/5 (toplu kosudaki tum kokler)"
     },
     "bulunan_olaylar": [
-      {"kart": "OLAY-01", "kok_neden": "dc1/rack-A kabin ağ arızası", "imza": "pkt_loss", "alarm": 473, "guven": "yuksek"},
-      {"kart": "OLAY-02", "kok_neden": "billing-db disk dolması", "imza": "disk_full", "alarm": 167, "guven": "yuksek"},
-      {"kart": "OLAY-03", "kok_neden": "payment-provider-gw dış servis kesintisi", "imza": "ext_slow", "alarm": 260, "guven": "yuksek"},
-      {"kart": "OLAY-04", "kok_neden": "session-service bellek tükenmesi", "imza": "oom_risk", "alarm": 27, "guven": "orta"},
-      {"kart": "OLAY-05", "kok_neden": "subscriber-db bağlantı havuzu tükenmesi", "imza": "db_conn_pool", "alarm": 67, "guven": "yuksek"}
+      {
+        "kart": "OLAY-01",
+        "kok_neden": "dc1/rack-A kabin ağ arızası",
+        "imza": "pkt_loss",
+        "alarm": 473,
+        "guven": "yuksek"
+      },
+      {
+        "kart": "OLAY-02",
+        "kok_neden": "billing-db disk dolması",
+        "imza": "disk_full",
+        "alarm": 167,
+        "guven": "yuksek"
+      },
+      {
+        "kart": "OLAY-03",
+        "kok_neden": "payment-provider-gw dış servis kesintisi",
+        "imza": "ext_slow",
+        "alarm": 260,
+        "guven": "yuksek"
+      },
+      {
+        "kart": "OLAY-04",
+        "kok_neden": "session-service bellek tükenmesi",
+        "imza": "oom_risk",
+        "alarm": 27,
+        "guven": "orta"
+      },
+      {
+        "kart": "OLAY-05",
+        "kok_neden": "subscriber-db bağlantı havuzu tükenmesi",
+        "imza": "db_conn_pool",
+        "alarm": 67,
+        "guven": "yuksek"
+      }
     ],
     "bilinen_sinirlar": [
       "Olay sayısı veriden türetildi, brifingde verilmedi.",
@@ -91,8 +125,14 @@
       "Aksiyon durumu kalıcı değil, Streamlit oturum belleğinde tutuluyor.",
       "Ekran görüntüleri final QA sırasında gerçek yerel Streamlit oturumundan alındı; deploy URL bulunmuyor.",
       "scikit-learn ve shap ortamda kurulu ancak son çözümde kullanılmıyor; keşif aşamasında denendi ve denetimsiz kümeleme gerekçeli olarak reddedildi.",
-      "Final QA Python 3.12.14 üzerinde tekrarlandı; ilk geliştirme ortamı Python 3.9.2 bu makinede bulunmadığından aynı oturumda yeniden test edilmedi."
-    ]
+      "Final QA Python 3.12.14 üzerinde tekrarlandı; ilk geliştirme ortamı Python 3.9.2 bu makinede bulunmadığından aynı oturumda yeniden test edilmedi.",
+      "Erken tespit olcumu dilim adimi kadar (varsayilan 120 sn) yukari yuvarlanir; gercek gecikme bu degerden kucuk olabilir.",
+      "Mobil gorunum duyarli (responsive) CSS degil, sadelestirilmis ayri bir Streamlit duzenidir; native mobil uygulama yoktur."
+    ],
+    "otomasyon_ve_mobilite": {
+      "erken_tespit": "Boru hatti artan zaman dilimleri uzerinde tekrar calistirilarak her kok nedenin ilk kez kart olarak belirdigi an olculur. Ortalama tespit gecikmesi 3,1 dakika; en hizli 1 dk 14 sn. Toplu kosudaki bes kokun besi de canli akista yakalaniyor. Canli akista gecici olarak gorunup sonra baska koke evrilen adaylar 'ara hipotez' olarak isaretlenir, gizlenmez. Kod: src/replay.py",
+      "saha_gorevi_ve_mobil": "Her kart fiziksel konum bilgisi tasir: veri merkezi/kabin, host listesi, kritik is yuku sayisi. Arayuzde mobil/saha gorunumu anahtari sekmeleri kapatip tek kolonlu sade liste verir; Streamlit LAN'da yayinlandigi icin telefondan acilabilir. Kod: src/cards.py _saha_gorevi(), src/app.py _mobil_gorunum()"
+    }
   },
   "sunum": {
     "demo_akisi": [
@@ -100,10 +140,12 @@
       "python -m src.cli — 3000 alarm 5 karta iniyor (600x); 994 atanmış + 2006 açıkça dışlanmış, kayıp 0; OLAY-01 kanıtı: dc1/rack-A kabinindeki 9 host'un 9'u da alarm üretiyor",
       "Kanıt ile gerekçenin ayrı bloklar olduğunu göster: ölçülen sayı ile çıkarım karışmıyor",
       "python -m src.cli --x-factor — ayrışma testi kapalı 4 kart, açık 5 kart; session-service ortaya çıkıyor",
+      "python -m src.cli --erken-tespit — kart, alarm seli tepe noktasina ulasmadan once aciliyor: kabin arizasi 2 dk 07 sn, billing-db 1 dk 14 sn; ortalama 3,1 dk",
       "streamlit run src/app.py — OLAY-03'ün aksiyonunu acik -> devam_ediyor -> kapandi yap, durum geçmişini göster",
       "Arayüzde ayrışma anahtarını kapat, kart sayısının 4'e düştüğünü canlı göster, tekrar aç",
       "Gürültü Denetimi sekmesi: elenen bir alarmın neden elendiğini göster",
-      "Sınırları söyle: OLAY-05'in kökü tartışmalı, karşı hipotez kartta duruyor"
+      "Sınırları söyle: OLAY-05'in kökü tartışmalı, karşı hipotez kartta duruyor",
+      "Arayuzde mobil/saha gorunumunu ac, telefondan LAN uzerinden goster: kok neden, kabin konumu, sahip, durum"
     ]
   }
 }

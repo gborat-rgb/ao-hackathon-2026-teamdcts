@@ -1,0 +1,21 @@
+==============================================================================
+ERKEN TESPIT — gece yeniden oynatildi
+==============================================================================
+  Dilim adimi      : 120 sn
+  Calistirilan kosu: 59
+  Toplu kosudaki kart: 5
+  Ortalama gecikme : 188 sn (3.1 dk)
+
+  KART ANI  KOK NEDEN              OLAY BASI GECIKME
+  01:44:20  dc1/rack-A kabini      01:42:13  2 dk 07 sn
+  02:06:20  billing-db             02:05:06  1 dk 14 sn
+  02:42:20  payment-provider-gw    02:40:28  1 dk 52 sn
+  02:46:20  session-service        02:42:38  3 dk 42 sn
+  03:10:20  batch-scheduler        03:05:28  4 dk 52 sn   <- ara hipotez
+  03:14:20  subscriber-db          03:09:19  5 dk 01 sn
+
+  Ara hipotez: canli akista bir sure kok gorunup gecenin tamami
+  okundugunda baska bir koke evrilen aday. Gizlenmiyor, isaretleniyor.
+
+  Not: gecikme, olayin ilk alarmi ile o olayin ilk kez kart olarak
+  belirdigi an arasindaki fark. Dilim adimi kadar yukari yuvarlanir.

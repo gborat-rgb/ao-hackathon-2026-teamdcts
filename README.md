@@ -78,6 +78,65 @@ Test: `tests/test_pipeline.py::test_session_service_payment_ile_birlesmiyor`
 
 ---
 
+## Erken tespit — araç o gece canlı çalışsaydı?
+
+Boru hattı, gecenin tamamı yerine **artan zaman dilimleri** üzerinde tekrar
+çalıştırılıyor. Ölçülen: her kök nedenin ilk kez kart olarak belirdiği an.
+
+| Kart oluştu | Kök neden | Olay başı | Gecikme |
+|---|---|---|---|
+| 01:44:20 | dc1/rack-A kabini | 01:42:13 | **2 dk 07 sn** |
+| 02:06:20 | billing-db | 02:05:06 | **1 dk 14 sn** |
+| 02:42:20 | payment-provider-gw | 02:40:28 | **1 dk 52 sn** |
+| 02:46:20 | session-service | 02:42:38 | 3 dk 42 sn |
+| 03:10:20 | batch-scheduler | 03:05:28 | 4 dk 52 sn · *ara hipotez* |
+| 03:14:20 | subscriber-db | 03:09:19 | 5 dk 01 sn |
+
+**Ortalama tespit gecikmesi: 3,1 dakika.** Toplu koşunun bulduğu beş kökün
+beşi de canlı akışta yakalanıyor.
+
+Kabin arızası örneği keskin: alarm seli tepe noktasına **01:48'de** ulaşıyor
+(iki dakikada 138 alarm, ekran okunmaz hale geliyor) — kart ise **01:44'te**
+zaten açılmış.
+
+`batch-scheduler` bir **ara hipotez**: canlı akışta bir süre kök olarak
+görünüyor, gecenin tamamı okunduğunda `subscriber-db`'ye evriliyor.
+Gizlenmiyor, işaretleniyor. (Bu, bilinen sınır #2 ile aynı modelleme
+kısıtından geliyor: grafik arıza yayılımını modelliyor, yük yayılımını değil.)
+
+```bash
+python -m src.cli --erken-tespit
+```
+
+Kod: `src/replay.py` · Kanıt: [`demo/11_erken_tespit.txt`](demo/11_erken_tespit.txt)
+
+---
+
+## Saha görevi ve mobil görünüm
+
+Kabin ağ arızası masadan çözülmez; birinin veri merkezine gitmesi gerekir.
+Her kart artık **nereye gidileceğini** söylüyor:
+
+```
+  SAHA GOREVI
+    dc1 / rack-A  —  9 host (5 kritik), azami siddet 5
+      ao-003-api, ao-009-auth, ao-015-subscriber, ao-021-charging, …
+```
+
+Konum, host listesi ve iş kritikliği zaten veride (`veri_merkezi`, `kabin`,
+`host`, `is_kritikligi`) duruyordu — karta taşındı. Konumlar etkilenen host
+sayısına göre sıralanır, azami üç konum listelenir, %15'in altında pay tutan
+konumlar elenir.
+
+Arayüzde kenar çubuğundaki **📱 Mobil / saha görünümü** anahtarı sekmeleri
+kapatıp tek kolonlu sade bir liste veriyor: kök neden, konum, sahip, durum.
+Streamlit LAN'da yayınlandığı için telefondan açılabiliyor
+(`Network URL` başlatma çıktısında görünür).
+
+Kod: `src/cards.py` → `_saha_gorevi()` · `src/app.py` → `_mobil_gorunum()`
+
+---
+
 ## Kurulum
 
 ```bash
@@ -104,6 +163,10 @@ python -m src.cli --x-factor
 # Gürültü denetimi — neden elendi
 python -m src.cli --gurultu 25
 
+# Erken tespit — geceyi yeniden oynat, kartların oluşma anını ölç
+python -m src.cli --erken-tespit
+python -m src.cli --erken-tespit --adim 60     # daha ince çözünürlük
+
 # Makine okunur çıktı
 python -m src.cli --json
 
@@ -114,7 +177,7 @@ streamlit run src/app.py
 Testler:
 
 ```bash
-python -m pytest tests/ -q        # 39 test
+python -m pytest tests/ -q        # 57 test
 ```
 
 ---
@@ -134,7 +197,7 @@ Tam veri seti üzerinde final kalite kapısında ölçüldü:
 | Üretilen kart | **5** (kabul kriteri ≤15) |
 | İndirgeme | **600×** |
 | Uçtan uca süre | **0,625 sn** (7 koşu ortalaması, Python 3.12.14) |
-| Test | **39/39** geçiyor |
+| Test | **57/57** geçiyor |
 
 ### Bulunan olaylar
 
