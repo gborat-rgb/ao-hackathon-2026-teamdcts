@@ -3,17 +3,33 @@
 # Hedef yorumlayici: Python 3.9.2 (C:\Program Files\Python39\python.exe)
 # Asagidaki surumler kurulu ortamdan dogrulanarak yazilmistir, tahmin degildir.
 #
-# DIKKAT: numpy 2.0.x, Python 3.9'u destekleyen son numpy serisidir. Pinleri
-# yukseltmek (pip install -U) ortami kirar. Surum degisikligi gerekiyorsa once
-# Python surumu konusulmalidir.
+# DIKKAT: numpy 2.0.x, Python 3.9'u destekleyen son numpy serisidir. numba 0.60
+# de numpy<2.1 sarti koyar. Pinleri yukseltmek (pip install -U) ortami kirar.
+# Surum degisikligi gerekiyorsa once Python surumu konusulmalidir.
 
+# --- veri isleme / analiz ---
 pandas==2.3.3
 numpy==2.0.2
-scikit-learn==1.6.1
 scipy==1.13.1
-requests==2.32.5
-pydantic==2.13.5
+pyarrow==21.0.0
+
+# --- modelleme ---
+scikit-learn==1.6.1
+
+# --- aciklanabilirlik (XAI) — DIREKTIF.md §13 ---
+# numba + llvmlite bagimli gelir; TreeExplainer JIT yolu bu ortamda test edildi.
+shap==0.49.1
+
+# --- arayuz / gorsellestirme ---
 streamlit==1.50.0
+plotly==7.1.0
 altair==5.5.0
 matplotlib==3.9.4
-pyarrow==21.0.0
+
+# --- entegrasyon / yapilandirma ---
+requests==2.32.5
+pydantic==2.13.5
+python-dotenv==1.2.1
+
+# --- test — DIREKTIF.md §17 ---
+pytest==8.4.2
