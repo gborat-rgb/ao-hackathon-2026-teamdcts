@@ -16,7 +16,7 @@ senaryo_paketi/                  ingest.py         scoring.py
                                                          │
                                       ┌──────────────────┴────────┐
                                       ▼                           ▼
-                                 sinyal (1112)              gürültü (1888)
+                              sinyal adayı (1112)       skor gürültüsü (1888)
                                       │                           │
                               clustering.py                       │
                                  kumele()                         │
@@ -24,6 +24,9 @@ senaryo_paketi/                  ingest.py         scoring.py
                                       │                           │
                                 ayristir()                        │
                         grafik ayrışma testi (X-Factor)           │
+                                      │                           │
+                         pipeline.py muhasebe kapısı               │
+                         994 atanmış + 118 dışarıda                │
                                       │                           │
                                   cards.py                        │
                          kart + kanıt + gerekçe + aksiyon         │
@@ -44,6 +47,11 @@ bırakılmıştı); aksiyon durumu Streamlit oturum belleğinde tutuluyor.
 ### `src/ingest.py` — veri girişi ve bağımlılık grafiği
 
 Üç dosyayı okur, host envanterini alarmlara birleştirir.
+
+Okuma sırasında zorunlu sütun, boş kritik alan, benzersiz `alarm_id`, ISO-8601
+zaman, 1–5 tam sayı severity, host/servis envanter eşleşmesi ve dependency
+servis bütünlüğü doğrulanır. Eksik veya bozuk dosya traceback yerine alanı ve
+dosyayı söyleyen `VeriDogrulamaHatasi` üretir.
 
 **Kritik tasarım kararı — etki yönü.** Veri sözlüğü `kaynak_servis`in
 `hedef_servis`e bağımlı olduğunu söylüyor: *hedef bozulursa kaynak etkilenir.*
@@ -180,16 +188,20 @@ id kesişimi), ikisini birden işlemek gereksiz.
 
 ## 4. Ölçülen sonuçlar
 
-Üç koşunun ortalaması, tam veri seti üzerinde:
+Final QA'daki yedi koşunun ortalaması, tam veri seti ve Python 3.12.14 üzerinde:
 
 | Metrik | Değer |
 |---|---|
 | Toplam alarm | 3000 |
-| Gürültü elenen | 1888 (%63) |
-| Sinyal | 1112 |
+| Skor gürültüsü | 1888 (%62,9) |
+| Sinyal adayı | 1112 |
+| Korelasyon dışı sinyal | 118 (%3,9), gerekçeli |
+| Kartlara atanan alarm | 994 |
+| Açıkça dışlanan toplam | 2006 (%66,9) |
+| Kayıp / çift atama | **0 / 0** |
 | Üretilen kart | **5** (kabul kriteri: ≤15) |
 | İndirgeme | **600×** |
-| Uçtan uca süre | **0.37 sn** |
+| Uçtan uca süre | **0.625 sn** |
 | Ayrışma testi kapalı → açık | 4 kart → **5 kart** |
 
 Üretilen kartlar:
@@ -197,10 +209,10 @@ id kesişimi), ikisini birden işlemek gereksiz.
 | Kart | Kök neden | İmza | Alarm | Güven | Ayrışma ile |
 |---|---|---|---|---|---|
 | OLAY-01 | dc1/rack-A kabini | `pkt_loss` | 473 | yüksek (0.99) | ✓ |
-| OLAY-02 | billing-db | `disk_full` | 167 | yüksek (0.72) | |
-| OLAY-03 | payment-provider-gw | `ext_slow` | 260 | yüksek (0.86) | ✓ |
-| OLAY-04 | session-service | `oom_risk` | 27 | orta (0.57) | ✓ |
-| OLAY-05 | subscriber-db | `db_conn_pool` | 67 | yüksek (0.88) | |
+| OLAY-02 | billing-db | `disk_full` | 167 | yüksek (0.833) | |
+| OLAY-03 | payment-provider-gw | `ext_slow` | 260 | yüksek (0.938) | ✓ |
+| OLAY-04 | session-service | `oom_risk` | 27 | orta (0.662) | ✓ |
+| OLAY-05 | subscriber-db | `db_conn_pool` | 67 | yüksek (0.759) | |
 
 Beşi de `docs/plan.md` §2.3'te veri keşfiyle bağımsız olarak doğrulanan
 olaylarla örtüşüyor.

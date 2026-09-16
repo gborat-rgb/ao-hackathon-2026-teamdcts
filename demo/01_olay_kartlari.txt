@@ -3,11 +3,13 @@
 S-A1 ALARM FIRTINASI — OLAY KARTLARI
 ==============================================================================
   Toplam alarm     : 3000
-  Gurultu elenen   : 1888 (%63)
-  Sinyal           : 1112
+  Skor gurultusu   : 1888 (%63)
+  Sinyal adayi     : 1112
+  Korelasyon disi  : 118
+  Kartlara giren   : 994
   Uretilen kart    : 5
   Indirgeme        : 3000 alarm -> 5 kart (600x)
-  Calisma suresi   : 0.32 sn
+  Calisma suresi   : 0.97 sn
 
 ==============================================================================
 OLAY-01  dc1/rack-A kabini kaynakli olay — pkt_loss  [ayrisma testi ile ayrildi]
@@ -71,7 +73,7 @@ OLAY-02  billing-db kaynakli olay — disk_full
     %70'ini acikliyor. Olayin sekli zamana yayilan gelisim (20 dakika). Bu
     nedenle billing-db turev etki degil, kok neden olarak degerlendirildi.
 
-  GUVEN: YUKSEK (0.72)
+  GUVEN: YUKSEK (0.83)
 
   KARSI HIPOTEZ
     charging-service (aciklama orani %61) — kok olarak bu da
@@ -110,7 +112,7 @@ OLAY-03  payment-provider-gw kaynakli olay — ext_slow  [ayrisma testi ile ayri
     acikliyor. Olayin sekli zamana yayilan gelisim (17 dakika). Bu nedenle
     payment-provider-gw turev etki degil, kok neden olarak degerlendirildi.
 
-  GUVEN: YUKSEK (0.86)
+  GUVEN: YUKSEK (0.94)
 
   KARSI HIPOTEZ
     payment-service (aciklama orani %78) — kok olarak bu da degerlendirildi,
@@ -146,7 +148,7 @@ OLAY-04  session-service kaynakli olay — oom_risk  [ayrisma testi ile ayrildi]
     gelisim (15 dakika). Bu nedenle session-service turev etki degil, kok
     neden olarak degerlendirildi.
 
-  GUVEN: ORTA (0.57)
+  GUVEN: ORTA (0.66)
 
   KARSI HIPOTEZ
     subscriber-service (aciklama orani %3) — kok olarak bu da
@@ -185,7 +187,7 @@ OLAY-05  subscriber-db kaynakli olay — db_conn_pool
     acikliyor. Olayin sekli zamana yayilan gelisim (18 dakika). Bu nedenle
     subscriber-db turev etki degil, kok neden olarak degerlendirildi.
 
-  GUVEN: YUKSEK (0.88)
+  GUVEN: YUKSEK (0.76)
 
   KARSI HIPOTEZ
     batch-scheduler (aciklama orani %37) — kok olarak bu da degerlendirildi,

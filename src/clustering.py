@@ -68,6 +68,7 @@ class Kume:
     kok_alarm_tipi: str = ""
     kok_zamani: pd.Timestamp = None
     aciklama_orani: float = 0.0
+    kok_imza: float = 0.0
     karsi_hipotez: dict = field(default_factory=dict)
     ayrisma_ile_bolundu: bool = False
 
@@ -302,6 +303,7 @@ def ayristir(alarmlar: pd.DataFrame, grafik, derinlik=0,
         kok_alarm_tipi=en_iyi["alarm_tipi"],
         kok_zamani=en_iyi["ilk_zaman"],
         aciklama_orani=en_iyi["aciklama_orani"],
+        kok_imza=en_iyi["imza"],
         karsi_hipotez=adaylar[1] if len(adaylar) > 1 else {},
     )
 
@@ -387,6 +389,7 @@ def olaylari_cikar(sinyaller: pd.DataFrame, grafik, ayrisma_acik=True,
                 kok_alarm_tipi=en_iyi.get("alarm_tipi", ""),
                 kok_zamani=en_iyi.get("ilk_zaman"),
                 aciklama_orani=en_iyi.get("aciklama_orani", 0.0),
+                kok_imza=en_iyi.get("imza", 0.0),
                 karsi_hipotez=adaylar[1] if len(adaylar) > 1 else {},
             ))
 

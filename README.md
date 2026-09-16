@@ -17,7 +17,8 @@ olduğu ayırt edilemediği için müdahale sırası yanlış kurulur.
 Bu yüzden çözüm bir filtre değil, bir **nedensellik atfetme** aracı:
 
 ```
-3000 alarm  →  1888'i gerekçeli olarak gürültü  →  1112 sinyal  →  5 olay kartı
+3000 alarm → 1888 skor gürültüsü + 118 korelasyon dışı sinyal →
+994 karta atanmış alarm → 5 olay kartı
 ```
 
 ---
@@ -85,8 +86,9 @@ cd ao-hackathon-2026-teamdcts
 pip install -r requirements.txt
 ```
 
-Python **3.9.2** ile geliştirildi ve doğrulandı. `numpy 2.0.x`, Python 3.9'u
-destekleyen son seridir; pinleri yükseltmek ortamı kırar.
+İlk geliştirme ortamı Python **3.9.2** idi. Final kalite kapısı ayrıca temiz
+bir Python **3.12.14** sanal ortamında, `requirements.txt` içindeki pinler
+değiştirilmeden doğrulandı. Pinleri topluca yükseltmeyin.
 
 ---
 
@@ -112,23 +114,27 @@ streamlit run src/app.py
 Testler:
 
 ```bash
-python -m pytest tests/ -q        # 19 test
+python -m pytest tests/ -q        # 39 test
 ```
 
 ---
 
 ## Sonuçlar
 
-Tam veri seti üzerinde ölçüldü (üç koşunun ortalaması):
+Tam veri seti üzerinde final kalite kapısında ölçüldü:
 
 | Metrik | Değer |
 |---|---|
 | İşlenen alarm | 3000 (tamamı, örnekleme yok) |
-| Gürültü elenen | 1888 (**%63**) |
+| Skorlama aşamasında gürültü | 1888 (**%62,9**) |
+| Korelasyon dışı sinyal | 118 (**%3,9**), her biri gerekçeli |
+| Açıkça kart dışında bırakılan | 2006 (**%66,9**) |
+| Kartlara atanan alarm | 994 |
+| Kayıp / çift atama | **0 / 0** |
 | Üretilen kart | **5** (kabul kriteri ≤15) |
 | İndirgeme | **600×** |
-| Uçtan uca süre | **0,37 sn** |
-| Test | 19/19 geçiyor |
+| Uçtan uca süre | **0,625 sn** (7 koşu ortalaması, Python 3.12.14) |
+| Test | **39/39** geçiyor |
 
 ### Bulunan olaylar
 
@@ -150,9 +156,11 @@ da** alarm üretiyor, diğer tüm kabin/küme çiftlerinde bu oran en fazla %56.
 | Araç | Model | Sürüm | Ne için |
 |---|---|---|---|
 | Claude Code (CLI) | Claude Opus 5 | `claude-opus-5[1m]` | Veri keşfi, yaklaşım karşılaştırması, uygulama, test, dokümantasyon |
+| OpenAI Codex (desktop) | GPT-5 tabanlı Codex | dağıtım build'i arayüzde sunulmuyor | Final QA, negatif testler, veri muhasebesi, güvenlik ve dokümantasyon doğrulaması |
 
-**Platform:** SAKA (Turkcell kurumsal sarmalayıcı)
-**MCP sunucusu:** kullanılmadı
+**Platform:** SAKA (ilk geliştirme) ve OpenAI Codex desktop (final QA)
+**MCP:** çözümün çalışma zamanında kullanılmıyor; final QA sırasında yalnızca
+yerel Python çalışma yolunu bulmak için Codex workspace-dependencies aracı kullanıldı
 **Harici API:** kullanılmadı — çözüm tamamen çevrimdışı çalışır
 
 ### İnsan / AI iş bölümü
@@ -164,22 +172,27 @@ da** alarm üretiyor, diğer tüm kabin/küme çiftlerinde bu oran en fazla %56.
 | Ayrışma testinin X-Factor olması | AI önerdi, **insan onayladı** |
 | Eşik ve ağırlık değerleri | AI, veriye bakarak seçti |
 | Kapsam ve zaman bütçesi | **İnsan** |
+| Final QA'nın başlatılması ve güvenli düzeltme yetkisi | **İnsan** |
+| Veri kaybı, önbellek ve güven skoru düzeltmeleri | Codex buldu; testlerle doğrulandı |
 
 Kritik promptlar: [`prompts/`](prompts/)
 Model çalışma kuralları: [`DIREKTIF.md`](DIREKTIF.md), [`CLAUDE.md`](CLAUDE.md)
 
 ---
 
-## Kullanılan kütüphaneler
+## Pinli ortam bağımlılıkları
 
 `pandas` `numpy` `scipy` · `scikit-learn` · `streamlit` `plotly` `altair`
 `matplotlib` · `pydantic` `requests` `python-dotenv` · `pytest` · `shap`
 
 Tam sürüm listesi: [`requirements.txt`](requirements.txt)
 
-> Not: `scikit-learn` ve `shap` ortama kuruldu ve keşif aşamasında denendi,
-> ancak **son çözümde kullanılmıyor**. Kümeleme, denetimsiz bir modelden
-> değil, bağımlılık grafiğinden türetiliyor — gerekçesi `docs/plan.md` §4'te.
+> Çalışma zamanındaki doğrudan çekirdek bağımlılıklar `pandas`, `numpy`,
+> `streamlit` ve `plotly`; `pytest` testler içindir. Diğer pinler keşif ve
+> destek ortamından kalmıştır. Özellikle `scikit-learn` ve `shap` keşif
+> aşamasında denendi ancak son çözümde kullanılmıyor. Kümeleme, denetimsiz
+> bir modelden değil, bağımlılık grafiğinden türetiliyor — gerekçesi
+> `docs/plan.md` §4'te.
 
 ---
 
@@ -188,6 +201,18 @@ Tam sürüm listesi: [`requirements.txt`](requirements.txt)
 [`demo/`](demo/) klasöründe yeniden üretilebilir çıktılar ve demo akışı var:
 `01_olay_kartlari.txt`, `02_x_factor.txt`, `03_gurultu_denetimi.txt`,
 `04_kartlar.json`, `05_test_sonuclari.txt`, `demo-notes.md`.
+
+### Gerçek arayüz kanıtları
+
+![Olay kartları ve veri muhasebesi](demo/06_arayuz_kartlar.png)
+
+![X-Factor 4 karttan 5 karta ayrışma kanıtı](demo/07_arayuz_xfactor.png)
+
+![Gürültü ve korelasyon dışı sinyal denetimi](demo/08_arayuz_gurultu.png)
+
+Diğer kanıtlar: zaman çizelgesi
+[`demo/09_arayuz_zaman.png`](demo/09_arayuz_zaman.png) ve kapanmış aksiyon
+geçmişi [`demo/10_aksiyon_kapandi.png`](demo/10_aksiyon_kapandi.png).
 
 Deploy URL yok — çözüm yerelde çalışır.
 
@@ -204,9 +229,10 @@ Deploy URL yok — çözüm yerelde çalışır.
 3. **Gözlem penceresi kapalı.** 03:30 sonrası görülemiyor; OLAY-05 pencere
    sonunda hâlâ aktif ve kartında belirtiliyor.
 4. **Gürültü elemesinde sızıntı var.** `cert_expiry` ve `backup_warn`'dan
-   birkaç alarm sinyal tarafında kalıyor.
+   birkaç alarm sinyal adayı tarafında kalıyor. Bunların karta giremeyenleri
+   artık `korelasyon_disi` olarak açıkça gerekçelendiriliyor; sessiz kayıp yok.
 5. **Aksiyon durumu kalıcı değil** — Streamlit oturum belleğinde tutuluyor;
    kalıcı veritabanı senaryoda kapsam dışı bırakılmıştı.
-6. **Ekran görüntüleri elle alınmalı.** Otomatik almak için `playwright`
-   denendi, `greenlet` C++ derleyici istediği ve ortamda bulunmadığı için
-   kurulamadı. Adımlar `demo/demo-notes.md` içinde.
+6. **Final QA bu makinede Python 3.12.14 ile yapıldı.** İlk geliştirme ortamı
+   olan Python 3.9.2 bu makinede bulunmadığı için aynı oturumda yeniden
+   kurulup test edilmedi; iki sürüm de dokümantasyonda açıkça ayrılıyor.

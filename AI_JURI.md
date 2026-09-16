@@ -1,15 +1,18 @@
 # AI Jüri Özeti
 
 **Takım:** Fail-i Over · **Senaryo:** S-A1 Alarm Fırtınası
-**Sonuç:** 3000 alarm → 5 olay kartı · 600× indirgeme · 0,37 sn · 19/19 test
+**Sonuç:** 3000 alarm → 5 olay kartı · 600× indirgeme · 0 kayıp · 39/39 test
 
 ---
 
 ## 1. AI Stratejimiz ve İş Akışı
 
-Tek araç kullandık: **Claude Code (CLI), Claude Opus 5 (`claude-opus-5[1m]`)**,
-SAKA kurumsal sarmalayıcısı üzerinden. MCP sunucusu ve harici API
-kullanılmadı — çözüm tamamen çevrimdışı çalışır.
+İlk geliştirmede **Claude Code (CLI), Claude Opus 5
+(`claude-opus-5[1m]`)** SAKA kurumsal sarmalayıcısı üzerinden kullanıldı.
+Final kalite kapısında **OpenAI Codex desktop, GPT-5 tabanlı Codex** kullanıldı;
+veri kaybı, grafik önbelleği ve güven skoru hataları burada bulundu ve regression
+testleriyle düzeltildi. Çözümün çalışma zamanında MCP veya harici API yoktur;
+tamamen çevrimdışı çalışır.
 
 Çalışma düzenimiz `DIREKTIF.md`'de yarışmadan **önce** yazılmıştı: önce
 problemi anla, sonra veriyi keşfet, sonra alternatif üret, sonra kodla.
@@ -28,6 +31,8 @@ yazılmadı** — o süre veri keşfine gitti.
 | Ayrışma testinin X-Factor yapılması | AI önerdi, **insan onayladı** |
 | Eşik ve ağırlık değerleri | AI, veriye bakarak |
 | Kodlamaya geçiş onayı | **İnsan** |
+| Final QA'nın başlatılması ve güvenli düzeltme yetkisi | **İnsan** |
+| Veri bütünlüğü ve negatif test denetimi | Codex; gerçek komut çıktılarıyla |
 
 ### AI'ın kendi önerisini veriyle çürüttüğü yerler
 
@@ -76,21 +81,24 @@ Dört aşama, her biri sayı üretiyor:
 | Metrik | Değer | Nasıl ölçüldü |
 |---|---|---|
 | İşlenen alarm | 3000 (tamamı) | `test_tum_alarmlar_isleniyor` |
-| Gürültü elenen | 1888 (%63) | `metrikler["gurultu_orani"]` |
+| Skor gürültüsü | 1888 (%62,9) | `metrikler["gurultu"]` |
+| Korelasyon dışı sinyal | 118 (%3,9), gerekçeli | `test_korelasyon_disi_sinyaller_acikca_gerekceli` |
+| Kartlara atanan alarm | 994 | `test_kart_atamalari_benzersiz` |
+| Kayıp / çift atama | 0 / 0 | `test_alarm_muhasebesinde_kayip_yok` |
 | Üretilen kart | 5 (kriter ≤15) | `test_en_fazla_onbes_kart` |
 | İndirgeme | 600× | 3000 / 5 |
-| Uçtan uca süre | 0,37 sn | 3 koşu ortalaması |
-| Test | 19/19 | `pytest tests/ -q` |
+| Uçtan uca süre | 0,625 sn | 7 koşu ortalaması, Python 3.12.14 |
+| Test | 39/39 | `pytest tests/ -q` |
 
 ### Bulunan beş olay
 
 | Kart | Kök neden | İmza | Alarm | Güven |
 |---|---|---|---|---|
 | OLAY-01 | `dc1/rack-A` kabin ağ arızası | `pkt_loss` | 473 | yüksek (0.99) |
-| OLAY-02 | `billing-db` disk dolması | `disk_full` | 167 | yüksek (0.72) |
-| OLAY-03 | `payment-provider-gw` dış kesinti | `ext_slow` | 260 | yüksek (0.86) |
-| OLAY-04 | `session-service` bellek tükenmesi | `oom_risk` | 27 | orta (0.57) |
-| OLAY-05 | `subscriber-db` bağlantı havuzu | `db_conn_pool` | 67 | yüksek (0.88) |
+| OLAY-02 | `billing-db` disk dolması | `disk_full` | 167 | yüksek (0.833) |
+| OLAY-03 | `payment-provider-gw` dış kesinti | `ext_slow` | 260 | yüksek (0.938) |
+| OLAY-04 | `session-service` bellek tükenmesi | `oom_risk` | 27 | orta (0.662) |
+| OLAY-05 | `subscriber-db` bağlantı havuzu | `db_conn_pool` | 67 | yüksek (0.759) |
 
 Beşi de, boru hattı yazılmadan **önce** yapılan veri keşfinde bağımsız olarak
 doğrulanmıştı (`docs/plan.md` §2.3). Yani kod, keşfi teyit etti — keşif koda
@@ -157,11 +165,11 @@ Demoda bu anahtar canlı olarak kapatılıp açılıyor.
 
 | Ne | Nerede |
 |---|---|
-| Ayrışma kararı | [`src/clustering.py:279-338`](src/clustering.py#L279-L338) — `ayristir()` |
-| Kopukluk ölçüsü | [`src/clustering.py:359-370`](src/clustering.py#L359-L370) — `_kokler_kopuk_mu()` |
-| Kabin kökü ve host kapsamı kapısı | [`src/clustering.py:193-277`](src/clustering.py#L193-L277) — `_lokalite_adaylari()` |
-| Kök aday sıralaması | [`src/clustering.py:119-191`](src/clustering.py#L119-L191) — `_kok_adaylari()` |
-| Gerekçeli gürültü elemesi | [`src/scoring.py:63-120`](src/scoring.py#L63-L120) — `skorla()` |
+| Ayrışma kararı | `src/clustering.py` — `ayristir()` |
+| Kopukluk ölçüsü | `src/clustering.py` — `_kokler_kopuk_mu()` |
+| Kabin kökü ve host kapsamı kapısı | `src/clustering.py` — `_lokalite_adaylari()` |
+| Kök aday sıralaması | `src/clustering.py` — `_kok_adaylari()` |
+| Gerekçeli son muhasebe | `src/pipeline.py` — `calistir()` |
 | Testle sabitlenmesi | `tests/test_pipeline.py::test_session_service_payment_ile_birlesmiyor` |
 
 ### Bonus gereksinimler
@@ -188,13 +196,14 @@ pip install -r requirements.txt
 python -m src.cli              # olay kartları (terminal)
 python -m src.cli --x-factor   # X-Factor ölçümü
 streamlit run src/app.py       # web arayüzü
-python -m pytest tests/ -q     # 19 test
+python -m pytest tests/ -q     # 39 test
 ```
 
-**Beklenen çıktı:** 3000 alarmın 1888'i gerekçeli olarak elenir, kalan 1112
-sinyal 5 olay kartına indirgenir; her kart kök neden hipotezi, ölçülmüş kanıt,
-gerekçe, güven seviyesi, karşı hipotez ve sahipli bir aksiyon taşır. Süre
-yarım saniyenin altındadır.
+**Beklenen çıktı:** 3000 alarmın 1888'i skor gürültüsü olarak, 118'i ise
+asgari açıklanabilir olay desteği bulamayan korelasyon dışı sinyal olarak
+gerekçeli biçimde kart dışında bırakılır. Kalan 994 alarm 5 olay kartındadır;
+kayıp ve çift atama sıfırdır. Her kart kök neden hipotezi, ölçülmüş kanıt,
+gerekçe, güven seviyesi, karşı hipotez ve sahipli bir aksiyon taşır.
 
 ---
 
@@ -211,17 +220,16 @@ Hiçbiri gizlenmedi; hepsi kartların ve dokümanların içinde de duruyor.
    biz `subscriber-db` dedik ve `batch-scheduler`'ı karşı hipotez olarak
    kartta bıraktık.
 3. **Gürültü elemesinde sızıntı var.** `cert_expiry` ve `backup_warn`'dan
-   birkaç alarm sinyal tarafında kalıyor ve kanıt sayılarını bir miktar
-   şişiriyor.
+   birkaç alarm sinyal adayı tarafında kalıyor. Kart desteği bulamayanlar
+   `korelasyon_disi` olarak açıkça etiketleniyor; sessiz kayıp yok.
 4. **Gözlem penceresi kapalı.** 03:30 sonrası görülemiyor; OLAY-05 pencere
    sonunda hâlâ aktif ve kartında bu yazıyor.
 5. **Geçmiş olay örüntüsü eşleştirmesi yapılmadı** — üçüncü bonus. Veri tek
    bir 2 saatlik pencere, karşılaştırılacak geçmiş yok.
 6. **Aksiyon durumu kalıcı değil**, oturum belleğinde. Kalıcı veritabanı
    senaryoda kapsam dışı bırakılmıştı.
-7. **Ekran görüntüleri elle alınmalı.** `playwright` ile otomatikleştirmek
-   denendi; bağımlılığı `greenlet` C++ derleyici istiyor, ortamda yok.
-   Adımlar `demo/demo-notes.md` içinde.
-8. **`scikit-learn` ve `shap` kuruldu ama son çözümde kullanılmıyor.**
+7. **`scikit-learn` ve `shap` kuruldu ama son çözümde kullanılmıyor.**
    Keşifte denendi, denetimsiz kümeleme gerekçeli olarak reddedildi
    (`docs/plan.md` §4-A). Ortamda durmalarının tek nedeni keşif aşamasıdır.
+8. **Final QA Python 3.12.14 üzerinde tekrarlandı.** İlk geliştirme ortamı
+   Python 3.9.2 bu makinede bulunmadığından aynı oturumda yeniden test edilmedi.

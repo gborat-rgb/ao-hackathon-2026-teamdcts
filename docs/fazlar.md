@@ -117,7 +117,8 @@ değiştirildi.
 
 **Durum:** Tamamlandı
 
-**Çıktı:** `tests/test_pipeline.py` — 19 test, hepsi geçiyor
+**Çıktı:** `tests/test_pipeline.py` — ilk teslimde 19 test, final kalite
+kapısından sonra **39 test**, hepsi geçiyor
 
 Testler mevcut çıktının fotoğrafını çekmiyor, **tutması gereken özellikleri**
 sabitliyor: tüm veri işleniyor mu, her alarm gerekçeli sınıflandırılmış mı,
@@ -128,11 +129,32 @@ iki yönlü mü (yayvan tipler eleniyor **ve** yoğunlaşan tipler tutuluyor).
 
 ## Faz 7 — Dokümantasyon ve Teslim (16:15 – )
 
-**Durum:** Devam ediyor
+**Durum:** Tamamlandı
 
 **Çıktı:** `docs/mimari.md`, `README.md`, `AI_JURI.md`, `docs/fazlar.md`,
 `demo/` (yeniden üretilebilir CLI çıktıları + demo akışı), `submission.json`
 
-**Açık iş:** Canlı arayüzden ekran görüntüleri elle alınacak. Otomatik almak
-için `playwright` denendi; bağımlılığı `greenlet` C++ derleyici istiyor,
-ortamda yok. Adımlar `demo/demo-notes.md` içinde.
+Canlı arayüz akışı gerçek yerel Streamlit oturumunda prova edildi; beş ekran
+görüntüsü `demo/` altına alındı ve adımlar `demo/demo-notes.md` içinde yazıldı.
+
+---
+
+## Faz 8 — Final kalite kapısı (16:30 – 16:55)
+
+**Durum:** Tamamlandı
+
+**Bulgular ve düzeltmeler:**
+
+- 1112 sinyal adayının 118'i kartlara girmediği hâlde son sınıf taşımıyordu.
+  Nihai muhasebe eklendi: 994 atanmış + 2006 açıkça dışlanmış = 3000,
+  kayıp 0, çift atama 0.
+- Grafik mesafe önbelleği arama derinliğini anahtara katmıyordu. Farklı
+  derinlikteki sorgular ayrıldı ve sentetik zincir regression testi eklendi.
+- Güven skoru seçilen kökün imzası yerine karşı hipotezin imzasını
+  kullanıyordu. Seçilen kök imzası `Kume` üzerinde taşınarak düzeltildi.
+- Eksik/bozuk CSV, zorunlu alan, timestamp, severity, duplicate ID,
+  host/servis ve dependency şeması doğrulamaları eklendi.
+- JSON çıktısından oynak çalışma süresi kaldırıldı ve aksiyon açılış zamanı
+  gözlem penceresine bağlandı; iki ardışık çıktı byte düzeyinde aynı.
+
+**Kanıt:** `docs/qa_report.md`, `demo/05_test_sonuclari.txt`, 39/39 test.

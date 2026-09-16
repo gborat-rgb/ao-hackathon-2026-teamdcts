@@ -73,9 +73,14 @@ def main():
     k1.metric("Toplam alarm", f"{metrikler['toplam_alarm']:,}".replace(",", "."))
     k2.metric("Olay karti", metrikler["kart_sayisi"],
               help="Kabul kriteri: en fazla 15")
-    k3.metric("Gurultu elenen",
-              f"%{100 * metrikler['gurultu_orani']:.0f}",
-              help=f"{metrikler['gurultu']} alarm")
+    k3.metric(
+        "Kart disi",
+        f"%{100 * metrikler['acikca_dislanan_oran']:.0f}",
+        help=(
+            f"{metrikler['gurultu']} skor gurultusu + "
+            f"{metrikler['korelasyon_disi_sinyal']} korelasyon disi sinyal"
+        ),
+    )
     k4.metric("Indirgeme", f"{metrikler['indirgeme_carpani']:.0f}x")
 
     sekmeler = st.tabs(
@@ -211,15 +216,19 @@ def _gurultu_sekmesi(alarmlar):
         "gerekcesi burada denetlenebilir."
     )
 
-    gurultu = alarmlar[~alarmlar["sinyal"]]
-    st.caption(f"{len(gurultu)} alarm gurultu olarak elendi.")
+    gurultu = alarmlar[alarmlar["son_sinif"] != "olay_karti"]
+    st.caption(
+        f"{len(gurultu)} alarm acikca kart disinda birakildi: "
+        f"{(gurultu['son_sinif'] == 'puanlama_gurultusu').sum()} skor gurultusu, "
+        f"{(gurultu['son_sinif'] == 'korelasyon_disi').sum()} korelasyon disi sinyal."
+    )
 
     tipler = ["(hepsi)"] + sorted(gurultu["alarm_type"].unique())
     secim = st.selectbox("Alarm tipi", tipler)
     g = gurultu if secim == "(hepsi)" else gurultu[gurultu["alarm_type"] == secim]
 
     st.dataframe(
-        g[["alarm_id", "timestamp", "alarm_type", "service", "host",
+        g[["alarm_id", "timestamp", "alarm_type", "service", "host", "son_sinif",
            "severity", "sinyal_skoru", "eleme_gerekcesi"]]
         .sort_values("sinyal_skoru", ascending=False)
         .head(300),

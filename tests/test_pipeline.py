@@ -8,16 +8,24 @@ Odak, cozumun dogru olmasi icin tutmasi GEREKEN ozellikler:
   - aksiyon durumu izlenebiliyor
 """
 
+import json
+import shutil
 import sys
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.cards import Aksiyon  # noqa: E402
-from src.clustering import _kokler_kopuk_mu  # noqa: E402
-from src.ingest import veriyi_hazirla  # noqa: E402
+from src.cards import Aksiyon, _guven_seviyesi  # noqa: E402
+from src.clustering import _kokler_kopuk_mu, olaylari_cikar  # noqa: E402
+from src.ingest import (  # noqa: E402
+    VERI_DIZINI,
+    BagimlilikGrafigi,
+    VeriDogrulamaHatasi,
+    veriyi_hazirla,
+)
 from src.pipeline import ayrisma_karsilastirmasi, calistir  # noqa: E402
 from src.scoring import skorla  # noqa: E402
 
@@ -209,3 +217,185 @@ def test_skorlama_determinist(veri):
     a = skorla(alarmlar)
     b = skorla(alarmlar)
     assert a["sinyal_skoru"].equals(b["sinyal_skoru"])
+
+
+# --- final kalite kapisi: veri muhasebesi ve determinizm ---------------------
+
+def test_alarm_muhasebesinde_kayip_yok(sonuc):
+    m = sonuc.metrikler
+    assert m["toplam_alarm"] == (
+        m["kartlara_giren_alarm"] + m["acikca_dislanan_alarm"]
+    )
+    assert m["kayip_alarm"] == 0
+    assert m["tekrar_atanan_alarm"] == 0
+    assert sonuc.alarmlar["son_sinif"].notna().all()
+
+
+def test_korelasyon_disi_sinyaller_acikca_gerekceli(sonuc):
+    disarida = sonuc.alarmlar[
+        sonuc.alarmlar["son_sinif"] == "korelasyon_disi"
+    ]
+    assert len(disarida) == sonuc.metrikler["korelasyon_disi_sinyal"]
+    assert len(disarida) > 0  # regression: once 118 alarm sessizce kayboluyordu
+    assert (disarida["eleme_gerekcesi"].str.len() > 0).all()
+
+
+def test_kart_atamalari_benzersiz(sonuc):
+    atanan = sonuc.alarmlar[sonuc.alarmlar["kart_id"] != ""]
+    assert len(atanan) == atanan["alarm_id"].nunique()
+    assert len(atanan) == sonuc.metrikler["kartlara_giren_alarm"]
+
+
+def test_pipeline_semantik_ciktisi_determinist():
+    a = calistir()
+    b = calistir()
+    a_metrik = dict(a.metrikler)
+    b_metrik = dict(b.metrikler)
+    a_metrik.pop("calisma_suresi_sn")
+    b_metrik.pop("calisma_suresi_sn")
+    assert a_metrik == b_metrik
+    assert [k.sozluk() for k in a.kartlar] == [k.sozluk() for k in b.kartlar]
+
+
+def test_guven_secilen_kokun_imzasini_kullaniyor(veri, sonuc):
+    alarmlar, _, grafik = veri
+    puanli = skorla(alarmlar)
+    kumeler = olaylari_cikar(puanli[puanli["sinyal"]], grafik)
+    assert len(kumeler) == len(sonuc.kartlar)
+    for kume, kart in zip(kumeler, sonuc.kartlar):
+        beklenen = _guven_seviyesi(
+            kume.aciklama_orani, kume.boyut, kume.kok_imza
+        )[1]
+        assert kart.guven_skoru == beklenen
+
+
+def test_mesafe_onbellegi_arama_derinligini_ayiriyor():
+    bagimliliklar = pd.DataFrame([
+        {"kaynak_servis": "b", "hedef_servis": "a", "kritiklik": "orta"},
+        {"kaynak_servis": "c", "hedef_servis": "b", "kritiklik": "orta"},
+        {"kaynak_servis": "d", "hedef_servis": "c", "kritiklik": "orta"},
+    ])
+    grafik = BagimlilikGrafigi(bagimliliklar)
+    assert grafik.mesafe("a", "d", max_atlama=2) is None
+    assert grafik.mesafe("a", "d", max_atlama=4) == 3
+
+
+def test_csv_ve_json_ayni_alarm_kumesini_iceriyor():
+    csv = pd.read_csv(VERI_DIZINI / "alarms.csv")
+    with (VERI_DIZINI / "alarms.json").open(encoding="utf-8") as f:
+        json_ids = {x["alarm_id"] for x in json.load(f)}
+    assert set(csv["alarm_id"]) == json_ids
+
+
+# --- negatif testler ---------------------------------------------------------
+
+def _veri_kopyasi(tmp_path):
+    dizin = tmp_path / "veri"
+    dizin.mkdir()
+    for ad in ["alarms.csv", "host_inventory.csv", "service_dependencies.csv"]:
+        shutil.copy2(VERI_DIZINI / ad, dizin / ad)
+    return dizin
+
+
+def test_eksik_alarm_dosyasi_acik_hata_veriyor(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    (dizin / "alarms.csv").unlink()
+    with pytest.raises(VeriDogrulamaHatasi, match="bulunamadi"):
+        veriyi_hazirla(dizin)
+
+
+def test_bozuk_csv_acik_hata_veriyor(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    (dizin / "alarms.csv").write_text(
+        'alarm_id,timestamp\n"kapanmayan', encoding="utf-8"
+    )
+    with pytest.raises(VeriDogrulamaHatasi):
+        veriyi_hazirla(dizin)
+
+
+@pytest.mark.parametrize("alan,deger", [
+    ("timestamp", "gecersiz-zaman"),
+    ("severity", 9),
+    ("severity", None),
+    ("host", "bilinmeyen-host"),
+])
+def test_gecersiz_alarm_alani_reddediliyor(tmp_path, alan, deger):
+    dizin = _veri_kopyasi(tmp_path)
+    alarms = pd.read_csv(dizin / "alarms.csv")
+    alarms.loc[0, alan] = deger
+    alarms.to_csv(dizin / "alarms.csv", index=False)
+    with pytest.raises(VeriDogrulamaHatasi):
+        veriyi_hazirla(dizin)
+
+
+def test_tekrar_eden_alarm_id_reddediliyor(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    alarms = pd.read_csv(dizin / "alarms.csv")
+    alarms.loc[1, "alarm_id"] = alarms.loc[0, "alarm_id"]
+    alarms.to_csv(dizin / "alarms.csv", index=False)
+    with pytest.raises(VeriDogrulamaHatasi, match="tekrar eden alarm_id"):
+        veriyi_hazirla(dizin)
+
+
+def test_eksik_zorunlu_sutun_reddediliyor(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    alarms = pd.read_csv(dizin / "alarms.csv").drop(columns="service")
+    alarms.to_csv(dizin / "alarms.csv", index=False)
+    with pytest.raises(VeriDogrulamaHatasi, match="zorunlu sutunlari eksik"):
+        veriyi_hazirla(dizin)
+
+
+def test_bozuk_bagimlilik_semasi_reddediliyor(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    deps = pd.read_csv(dizin / "service_dependencies.csv").drop(
+        columns="hedef_servis"
+    )
+    deps.to_csv(dizin / "service_dependencies.csv", index=False)
+    with pytest.raises(VeriDogrulamaHatasi, match="zorunlu sutunlari eksik"):
+        veriyi_hazirla(dizin)
+
+
+def test_tek_alarm_kaybolmadan_acikca_dislanir(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    alarms = pd.read_csv(dizin / "alarms.csv").head(1)
+    alarms.to_csv(dizin / "alarms.csv", index=False)
+    sonuc = calistir(dizin=dizin)
+    assert sonuc.metrikler["kart_sayisi"] == 0
+    assert sonuc.metrikler["acikca_dislanan_alarm"] == 1
+    assert sonuc.metrikler["kayip_alarm"] == 0
+
+
+def test_bilinmeyen_alarm_tipi_guvenli_islenir(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    alarms = pd.read_csv(dizin / "alarms.csv").head(1)
+    alarms.loc[alarms.index[0], "alarm_type"] = "yeni_alarm_tipi"
+    alarms.to_csv(dizin / "alarms.csv", index=False)
+    sonuc = calistir(dizin=dizin)
+    assert sonuc.metrikler["toplam_alarm"] == 1
+    assert sonuc.metrikler["kayip_alarm"] == 0
+
+
+def test_bagimlilik_dongusu_sonsuz_dongu_yaratmaz(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    deps = pd.read_csv(dizin / "service_dependencies.csv")
+    ilk = deps.iloc[0].copy()
+    ilk["kaynak_servis"], ilk["hedef_servis"] = (
+        ilk["hedef_servis"], ilk["kaynak_servis"]
+    )
+    deps = pd.concat([deps, ilk.to_frame().T], ignore_index=True)
+    deps.to_csv(dizin / "service_dependencies.csv", index=False)
+    _, _, grafik = veriyi_hazirla(dizin)
+    assert len(grafik.asagi_akis(str(ilk["kaynak_servis"]))) <= len(grafik.servisler)
+
+
+def test_satir_sirasi_sonucu_degistirmiyor(tmp_path):
+    dizin = _veri_kopyasi(tmp_path)
+    alarms = pd.read_csv(dizin / "alarms.csv")
+    alarms.sample(frac=1.0, random_state=2026).to_csv(
+        dizin / "alarms.csv", index=False
+    )
+    normal = calistir()
+    karisik = calistir(dizin=dizin)
+    assert [k.sozluk() for k in normal.kartlar] == [
+        k.sozluk() for k in karisik.kartlar
+    ]

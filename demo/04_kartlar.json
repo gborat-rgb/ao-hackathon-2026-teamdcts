@@ -8,8 +8,12 @@
     "indirgeme_orani": 0.001667,
     "indirgeme_carpani": 600.0,
     "kartlara_giren_alarm": 994,
-    "ayrisma_ile_bolunen_kart": 3,
-    "calisma_suresi_sn": 0.233
+    "korelasyon_disi_sinyal": 118,
+    "acikca_dislanan_alarm": 2006,
+    "acikca_dislanan_oran": 0.6687,
+    "kayip_alarm": 0,
+    "tekrar_atanan_alarm": 0,
+    "ayrisma_ile_bolunen_kart": 3
   },
   "kartlar": [
     {
@@ -58,7 +62,7 @@
         "sahip": "Ag ekibi",
         "aciklama": "Kabin ust switch'ini ve uplink durumunu kontrol et (dc1/rack-A kabini)",
         "durum": "acik",
-        "acilis": "2026-09-16T15:14:01",
+        "acilis": "2026-09-10T03:30:20",
         "guncelleme": "",
         "gecmis": []
       }
@@ -89,7 +93,7 @@
       ],
       "gerekce": "Kumenin ilk siddetli alarmi billing-db uzerinde disk_full tipinde ve 02:05:06'de uretildi. Sonrasinda gelen alarmlar (disk_full -> db_write_fail -> ntp_drift) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %70'ini acikliyor. Olayin sekli zamana yayilan gelisim (20 dakika). Bu nedenle billing-db turev etki degil, kok neden olarak degerlendirildi.",
       "guven": "yuksek",
-      "guven_skoru": 0.719,
+      "guven_skoru": 0.833,
       "karsi_hipotez": "charging-service (aciklama orani %61) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
       "sinirlar": [
         "Kumenin %30'i kok nedenin asagi akisinda degil; ikinci bir etken olabilir."
@@ -101,7 +105,7 @@
         "sahip": "Veritabani ekibi",
         "aciklama": "Disk alanini genislet, eski WAL/log dosyalarini temizle (billing-db)",
         "durum": "acik",
-        "acilis": "2026-09-16T15:14:01",
+        "acilis": "2026-09-10T03:30:20",
         "guncelleme": "",
         "gecmis": []
       }
@@ -131,7 +135,7 @@
       ],
       "gerekce": "Kumenin ilk siddetli alarmi payment-provider-gw uzerinde ext_slow tipinde ve 02:40:28'de uretildi. Sonrasinda gelen alarmlar (ext_unreach -> ext_slow -> timeout) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %89'ini acikliyor. Olayin sekli zamana yayilan gelisim (17 dakika). Bu nedenle payment-provider-gw turev etki degil, kok neden olarak degerlendirildi.",
       "guven": "yuksek",
-      "guven_skoru": 0.858,
+      "guven_skoru": 0.938,
       "karsi_hipotez": "payment-service (aciklama orani %78) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
       "sinirlar": [],
       "ayrisma_ile_bolundu": true,
@@ -141,7 +145,7 @@
         "sahip": "Entegrasyon ekibi",
         "aciklama": "Dis saglayici gecikmesini olc, zaman asimi degerlerini gozden gecir (payment-provider-gw)",
         "durum": "acik",
-        "acilis": "2026-09-16T15:14:01",
+        "acilis": "2026-09-10T03:30:20",
         "guncelleme": "",
         "gecmis": []
       }
@@ -170,7 +174,7 @@
       ],
       "gerekce": "Kumenin ilk siddetli alarmi session-service uzerinde oom_risk tipinde ve 02:42:38'de uretildi. Sonrasinda gelen alarmlar (oom_risk) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %82'ini acikliyor. Olayin sekli zamana yayilan gelisim (15 dakika). Bu nedenle session-service turev etki degil, kok neden olarak degerlendirildi.",
       "guven": "orta",
-      "guven_skoru": 0.575,
+      "guven_skoru": 0.662,
       "karsi_hipotez": "subscriber-service (aciklama orani %3) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
       "sinirlar": [
         "Kume kucuk; istatistiksel dayanak sinirli."
@@ -182,7 +186,7 @@
         "sahip": "Uygulama ekibi",
         "aciklama": "Heap kullanimini incele, servisi kontrollu yeniden baslat (session-service)",
         "durum": "acik",
-        "acilis": "2026-09-16T15:14:01",
+        "acilis": "2026-09-10T03:30:20",
         "guncelleme": "",
         "gecmis": []
       }
@@ -212,7 +216,7 @@
       ],
       "gerekce": "Kumenin ilk siddetli alarmi subscriber-db uzerinde db_conn_pool tipinde ve 03:09:19'de uretildi. Sonrasinda gelen alarmlar (db_conn_pool -> batch_slow -> cpu_high) bagimlilik grafiginde bu noktanin asagi akisinda kalan servislerde yogunlasiyor; kokun asagi akisi kumenin %89'ini acikliyor. Olayin sekli zamana yayilan gelisim (18 dakika). Bu nedenle subscriber-db turev etki degil, kok neden olarak degerlendirildi.",
       "guven": "yuksek",
-      "guven_skoru": 0.875,
+      "guven_skoru": 0.759,
       "karsi_hipotez": "batch-scheduler (aciklama orani %37) — kok olarak bu da degerlendirildi, ancak daha gec basladigi icin ikinci sirada.",
       "sinirlar": [],
       "ayrisma_ile_bolundu": false,
@@ -222,7 +226,7 @@
         "sahip": "Veritabani ekibi",
         "aciklama": "Baglanti havuzu limitini ve acik oturumlari incele (subscriber-db)",
         "durum": "acik",
-        "acilis": "2026-09-16T15:14:01",
+        "acilis": "2026-09-10T03:30:20",
         "guncelleme": "",
         "gecmis": []
       }

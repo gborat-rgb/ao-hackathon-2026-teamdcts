@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local browser QA artifacts (jury-facing copies live under demo/)
+.playwright-cli/
+output/playwright/

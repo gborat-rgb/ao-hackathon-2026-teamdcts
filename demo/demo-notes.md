@@ -12,7 +12,7 @@
 | `02_x_factor.txt` | Ayrışma testi ölçümü: 4 kart → 5 kart |
 | `03_gurultu_denetimi.txt` | Elenen alarmlardan 25 örnek ve her birinin eleme gerekçesi |
 | `04_kartlar.json` | Kartların makine okunur hâli |
-| `05_test_sonuclari.txt` | 19 testin sonucu |
+| `05_test_sonuclari.txt` | 39 testin sonucu |
 
 Bu dosyaların hepsi komutla yeniden üretilebilir — dekoratif değil, gerçek çıktı.
 
@@ -20,9 +20,9 @@ Ekran görüntüleri (`*.png`) canlı arayüzden alınır; alma adımları aşa�
 
 ---
 
-## Canlı demo akışı (4–5 dakika)
+## Canlı demo akışı (7 dakika)
 
-### 1. Problemi göster (30 sn)
+### 1. Problemi göster (45 sn)
 
 ```bash
 wc -l senaryo_paketi/alarms.csv     # 3001 satır
@@ -32,19 +32,20 @@ wc -l senaryo_paketi/alarms.csv     # 3001 satır
 > hangisinin kök neden, hangisinin türev etki, hangisinin gürültü olduğunun
 > görünmemesi."
 
-### 2. Terminal çözümü (60 sn)
+### 2. Terminal çözümü ve veri muhasebesi (1 dk 45 sn)
 
 ```bash
 python -m src.cli
 ```
 
 Gösterilecek:
-- Başlıktaki indirgeme: **3000 alarm → 5 kart, 600×, 0.37 sn**
+- Başlıktaki indirgeme: **3000 alarm → 5 kart, 600×**
+- Muhasebe: **994 karta atanmış + 2006 açıkça dışlanmış = 3000; kayıp 0**
 - **OLAY-01** kartında kanıt satırı: *"dc1/rack-A kabinindeki 9 host'un 9'u alarm üretiyor (%100)"*
 - Kanıt ile gerekçenin ayrı bloklar olması — ölçülen sayı ile çıkarım karışmıyor
 - Her kartın karşı hipotezi
 
-### 3. X-Factor — ayrışma testi (90 sn) ⭐
+### 3. X-Factor — ayrışma testi (1 dk 30 sn) ⭐
 
 ```bash
 python -m src.cli --x-factor
@@ -66,7 +67,7 @@ Test acilinca ortaya cikan kok neden: session-service
 > "Ayrımın dayanağı bağımlılık grafiği: payment-provider-gw ile session-service
 > arasında nedensel yol yok. Kopuk kökler ayrı olaydır."
 
-### 4. Arayüz ve aksiyon izleme (90 sn)
+### 4. Arayüz ve aksiyon izleme (2 dk)
 
 ```bash
 streamlit run src/app.py
@@ -81,7 +82,15 @@ streamlit run src/app.py
 - **Gürültü Denetimi** sekmesi: bir alarm seç, *"neden elendi"* sütununu göster
 - **Zaman Çizelgesi** sekmesi: sinyal/gürültü ayrımı ve işaretlenmiş olay pencereleri
 
-### 5. Sınırları söyle (30 sn)
+### 5. Test kanıtı, performans ve sınırlar (1 dk)
+
+```bash
+python -m pytest tests/ -q
+```
+
+> "39 test; veri muhasebesi, determinism, bozuk veri, duplicate ID,
+> dependency cycle ve satır sırası dahil. Aynı ortamda 7 koşu ortalaması
+> 0.625 saniye; demo hedefi olan 10 saniyenin rahat altında."
 
 > "OLAY-05'in kökünü subscriber-db olarak verdik, batch-scheduler'ı karşı
 > hipotez olarak bıraktık. Bağımlılık grafiği arıza yayılımını modelliyor,
@@ -89,15 +98,9 @@ streamlit run src/app.py
 
 ---
 
-## Ekran görüntüsü alma adımları
+## Ekran görüntüsü kanıtları
 
-Uygulama çalışıyorsa `http://localhost:8501` adresinde. Değilse:
-
-```bash
-streamlit run src/app.py
-```
-
-Alınacak görüntüler ve dosya adları:
+Final QA sırasında gerçek Streamlit oturumundan 1600×1100 viewport ile alındı:
 
 | Dosya | Ne çekilecek |
 |---|---|
@@ -107,4 +110,4 @@ Alınacak görüntüler ve dosya adları:
 | `09_arayuz_zaman.png` | Zaman Çizelgesi sekmesi, olay pencereleri işaretli |
 | `10_aksiyon_kapandi.png` | Bir aksiyon `kapandi` durumunda, durum geçmişi görünür |
 
-Her görüntü çözümün gerçek bir özelliğini göstermeli; süsleme eklenmemeli.
+Görüntüler dekoratif değildir; aynı özellikler canlı demoda tekrar üretilebilir.

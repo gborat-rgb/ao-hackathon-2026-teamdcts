@@ -10,6 +10,7 @@ import argparse
 import json
 import sys
 
+from .ingest import VeriDogrulamaHatasi
 from .pipeline import ayrisma_karsilastirmasi, calistir
 
 # Windows konsolu varsayilan olarak cp1252 kullaniyor ve Turkce karakterlerde
@@ -88,6 +89,14 @@ def main(argv=None):
                    help="ayrisma testini devre disi birak")
     a = p.parse_args(argv)
 
+    try:
+        return _komutu_calistir(a)
+    except VeriDogrulamaHatasi as exc:
+        print("HATA: %s" % exc, file=sys.stderr)
+        return 2
+
+
+def _komutu_calistir(a):
     if a.x_factor:
         k = ayrisma_karsilastirmasi()
         print(CIZGI)
@@ -110,8 +119,13 @@ def main(argv=None):
     sonuc = calistir(ayrisma_acik=not a.ayrisma_kapali, **kw)
 
     if a.json:
+        # Duvar saati performans olcumu dogasi geregi kosudan kosuya degisir.
+        # Makine okunur sonuc semantik olarak deterministik kalsin diye JSON
+        # kanitindan bu tek oynak alan cikarilir; terminalde raporlanmaya devam eder.
+        sabit_metrikler = dict(sonuc.metrikler)
+        sabit_metrikler.pop("calisma_suresi_sn", None)
         print(json.dumps(
-            {"metrikler": sonuc.metrikler,
+            {"metrikler": sabit_metrikler,
              "kartlar": [k.sozluk() for k in sonuc.kartlar]},
             ensure_ascii=False, indent=2, default=str))
         return 0
@@ -122,8 +136,10 @@ def main(argv=None):
     print("S-A1 ALARM FIRTINASI — OLAY KARTLARI")
     print(CIZGI)
     print("  Toplam alarm     : %d" % m["toplam_alarm"])
-    print("  Gurultu elenen   : %d (%%%.0f)" % (m["gurultu"], 100 * m["gurultu_orani"]))
-    print("  Sinyal           : %d" % m["sinyal"])
+    print("  Skor gurultusu   : %d (%%%.0f)" % (m["gurultu"], 100 * m["gurultu_orani"]))
+    print("  Sinyal adayi     : %d" % m["sinyal"])
+    print("  Korelasyon disi  : %d" % m["korelasyon_disi_sinyal"])
+    print("  Kartlara giren   : %d" % m["kartlara_giren_alarm"])
     print("  Uretilen kart    : %d" % m["kart_sayisi"])
     print("  Indirgeme        : %d alarm -> %d kart (%.0fx)"
           % (m["toplam_alarm"], m["kart_sayisi"], m["indirgeme_carpani"]))
@@ -137,11 +153,13 @@ def main(argv=None):
         print(CIZGI)
         print("GURULTU DENETIMI — elenen alarmlardan ornekler")
         print(CIZGI)
-        g = sonuc.alarmlar[~sonuc.alarmlar["sinyal"]].head(a.gurultu)
+        g = sonuc.alarmlar[
+            sonuc.alarmlar["son_sinif"] != "olay_karti"
+        ].head(a.gurultu)
         for _, r in g.iterrows():
-            print("  %s  %-14s %-20s sev=%d skor=%.2f"
-                  % (r["alarm_id"], r["alarm_type"], r["service"],
-                     r["severity"], r["sinyal_skoru"]))
+            print("  %s  %-18s %-14s %-20s sev=%d skor=%.2f"
+                  % (r["alarm_id"], r["son_sinif"], r["alarm_type"],
+                     r["service"], r["severity"], r["sinyal_skoru"]))
             print("      neden elendi: %s" % r["eleme_gerekcesi"])
         print()
 

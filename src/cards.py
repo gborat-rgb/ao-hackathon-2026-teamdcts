@@ -216,8 +216,9 @@ def _sinirlar(kume, pencere_bitisi) -> List[str]:
 
 def kart_uret(kume, grafik, sira: int, pencere_bitisi) -> OlayKarti:
     a = kume.alarmlar
-    imza = kume.karsi_hipotez.get("imza", 0.5) if kume.karsi_hipotez else 0.5
-    guven, skor = _guven_seviyesi(kume.aciklama_orani, kume.boyut, imza)
+    guven, skor = _guven_seviyesi(
+        kume.aciklama_orani, kume.boyut, kume.kok_imza
+    )
 
     kh = kume.karsi_hipotez or {}
     karsi = (
@@ -237,7 +238,10 @@ def kart_uret(kume, grafik, sira: int, pencere_bitisi) -> OlayKarti:
         kart_id=kart_id,
         sahip=sahip,
         aciklama="%s (%s)" % (aksiyon_metni, kume.kok_servis),
-        acilis=datetime.now().isoformat(timespec="seconds"),
+        # Toplu/offline analizde kart, gozlem penceresi tamamlandiginda acilir.
+        # Duvar saatini kullanmamak ayni girdinin JSON ciktisini deterministik
+        # tutar; kullanici durum degistirdiginde gercek zaman yine kaydedilir.
+        acilis=pencere_bitisi.isoformat(timespec="seconds"),
     )
 
     return OlayKarti(
