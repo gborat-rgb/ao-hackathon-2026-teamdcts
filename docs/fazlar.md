@@ -189,3 +189,28 @@ yüzeye çıkarıldı. Arayüze tek kolonlu mobil görünüm eklendi.
 
 **Ölçülen:** Ortalama tespit gecikmesi 3,1 dk, en hızlı 1 dk 14 sn, toplu
 koşudaki beş kökün beşi de canlı akışta yakalanıyor.
+
+---
+
+## Faz 10 — Executive jüri arayüzü
+
+**Durum:** Tamamlandı (yerel commit, push yok)
+
+**Çıktı:** `src/app.py`, `.streamlit/config.toml` (yeni),
+`tests/test_app.py` (yeni, 3 test), yenilenen `demo/06`–`10` ve yeni
+`demo/12_arayuz_mobil.png`
+
+Çekirdek algoritma değişmedi. Arayüz ilk bakışta `ham alarm → dışlanan →
+korele → olay → indirgeme` akışını ve sekiz KPI'ı gösteriyor; olay satırları
+kök, şiddet/güven, kapsam, sahip, durum ve ilk aksiyonu tek bakışta veriyor.
+
+İş Codex desktop'ta başladı, kullanım limiti nedeniyle Claude Code (Claude
+Opus 5, masaüstü uygulaması) ile tamamlandı. Kapsamı, çekirdek koruma
+kuralını ve push yasağını insan belirledi.
+
+**Karar:** X-Factor'deki false merge açıklaması sabit metin olarak
+bırakılmadı; iki gerçek koşunun alarm atamalarından hesaplanan panele
+çevrildi ve AppTest ile sabitlendi.
+
+**Doğrulama:** 60/60 test; CLI ve JSON çıktıları mevcut `demo/` kanıtlarıyla
+aynı. Ayrıntı: `docs/qa_report.md` → "Executive arayüz güncellemesi".

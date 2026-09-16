@@ -147,6 +147,53 @@ regresyonu olmaması ve 10 saniyelik demo hedefinin rahat geçilmesidir.
 | Demo rehearsal | PASS |
 | Git hygiene | PASS |
 
+## Executive arayüz güncellemesi
+
+**Tarih:** 16 Eylül 2026 · **Base:** `a94bebc` (`origin/main`) · **Branch:**
+`codex/executive-ui` (yalnızca yerel commit, push yok)
+
+Kapsam yalnızca `src/app.py`, yeni `.streamlit/config.toml` ve yeni
+`tests/test_app.py`. `scoring.py`, `clustering.py`, `cards.py`, `ingest.py`,
+`pipeline.py` değişmedi.
+
+| Kontrol | Sonuç |
+|---|---|
+| `python -m pytest tests/ -q` | PASS — 60/60 (57 önceki + 3 AppTest) |
+| `python -m src.cli` | PASS — çıktı `demo/01_olay_kartlari.txt` ile süre satırı dışında aynı |
+| `python -m src.cli --json` | PASS — iki koşu byte düzeyinde aynı ve `demo/04_kartlar.json` ile aynı |
+| `python -m src.cli --x-factor` | PASS — 4 kart → 5 kart, `session-service` |
+| `python -m src.cli --gurultu 20` | PASS |
+| `python -m json.tool submission.json` · `pip check` | PASS |
+| Gerçek tarayıcı (headless Chromium, 1600×1100/1400 ve 390×844) | PASS — konsol hatası yok, sunucu logu temiz |
+
+Yeni AppTest'ler şunları sabitliyor: beş sekme; sekiz KPI'ın
+`calistir().metrikler` ile birebir eşleşmesi; her kart için bir ayrıntı
+bölümü; gürültü tablosunun 2006 satırın tamamını gerekçeli göstermesi;
+X-Factor sayılarının `ayrisma_karsilastirmasi()` ile eşleşmesi ve false
+merge panelinin gerçek koşulardan türemesi; aksiyonun arayüzden kapatılıp
+geçmişe yazılması.
+
+Bu turda bulunan ve düzeltilen arayüz sorunları:
+
+- **X-Factor açıklaması sabit metindi** (`payment-provider-gw → mobile-bff ←
+  session-service`). Kart çıktısından türetilemiyordu (iki kartın servis
+  kesişimi boş). Yerine iki koşunun alarm atamalarından ölçülen panel
+  kondu: 27/27 alarm OLAY-03'e gömülü, 15 dk çakışma, grafik mesafesi 4.
+- **"Veri bütünlüğü sağlam" rozeti sabitti**; artık kayıp ve çift atama
+  sıfırsa yeşil, değilse kırmızı ihlal rozeti.
+- X-Factor sekmesi kenar çubuğundaki eşiği yok sayıyordu; artık aynı eşikle
+  hesaplanıyor.
+- Zaman çizelgesinde OLAY-03 ve OLAY-04 etiketleri üst üste biniyordu;
+  çakışan pencerelerin etiketi aşağı kaydırıldı.
+- Mobil görünümde üç KPI alt alta yığılıp ekranın yarısını kaplıyordu; tek
+  satırlık şeride çevrildi.
+- Erken Tespit / Zaman Çizelgesi metinleri ve güven etiketleri Türkçe
+  karakterlerle diğer sekmelerle hizalandı.
+
+Metrikler önce ve sonra aynı: 3000 alarm, 1888 skor gürültüsü, 118
+korelasyon dışı, 994 karta atanmış, 2006 dışlanan, 0 kayıp, 0 çift atama,
+5 kart, 600×, X-Factor 4 → 5.
+
 ## Bilinen sınırlar
 
 1. Doğrulama etiketi jüriye kapalı; beş olay veri keşfi hipotezidir.

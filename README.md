@@ -177,7 +177,7 @@ streamlit run src/app.py
 Testler:
 
 ```bash
-python -m pytest tests/ -q        # 57 test
+python -m pytest tests/ -q        # 60 test
 ```
 
 ---
@@ -197,7 +197,7 @@ Tam veri seti üzerinde final kalite kapısında ölçüldü:
 | Üretilen kart | **5** (kabul kriteri ≤15) |
 | İndirgeme | **600×** |
 | Uçtan uca süre | **0,625 sn** (7 koşu ortalaması, Python 3.12.14) |
-| Test | **57/57** geçiyor |
+| Test | **60/60** geçiyor (3'ü Streamlit arayüz sözleşmesi) |
 
 ### Bulunan olaylar
 
@@ -237,6 +237,7 @@ yerel Python çalışma yolunu bulmak için Codex workspace-dependencies aracı 
 | Kapsam ve zaman bütçesi | **İnsan** |
 | Final QA'nın başlatılması ve güvenli düzeltme yetkisi | **İnsan** |
 | Veri kaybı, önbellek ve güven skoru düzeltmeleri | Codex buldu; testlerle doğrulandı |
+| Executive jüri arayüzü | **İnsan** kapsamı belirledi; Codex başladı, Claude Code (Opus 5) tamamladı |
 
 Kritik promptlar: [`prompts/`](prompts/)
 Model çalışma kuralları: [`DIREKTIF.md`](DIREKTIF.md), [`CLAUDE.md`](CLAUDE.md)
@@ -267,15 +268,27 @@ Tam sürüm listesi: [`requirements.txt`](requirements.txt)
 
 ### Gerçek arayüz kanıtları
 
-![Olay kartları ve veri muhasebesi](demo/06_arayuz_kartlar.png)
+Arayüz açılır açılmaz yönetici özetini verir:
+`3.000 ham alarm → −2.006 açıkça dışlanan → 994 korele alarm → 5 aksiyonlanabilir
+olay → 600×`, altında kayıp 0, çift atama 0 ve çalışma süresi. Hiçbir sayı
+sabit yazılmaz; hepsi `calistir()` metriklerinden gelir.
+
+![Yönetici özeti, KPI'lar ve olay listesi](demo/06_arayuz_kartlar.png)
+
+X-Factor sekmesi 4 / 5 kart karşılaştırmasının altında false merge'i ölçerek
+gösterir: ayrışma kapalıyken `session-service` alarmlarının 27/27'si
+`payment-provider-gw` kartına gömülüyor; iki olayın 15 dakikalık zaman
+çakışmasına rağmen kökler arası grafik mesafesi 4 (eşik 2). Değerler iki
+gerçek koşunun alarm atamalarından hesaplanır.
 
 ![X-Factor 4 karttan 5 karta ayrışma kanıtı](demo/07_arayuz_xfactor.png)
 
 ![Gürültü ve korelasyon dışı sinyal denetimi](demo/08_arayuz_gurultu.png)
 
 Diğer kanıtlar: zaman çizelgesi
-[`demo/09_arayuz_zaman.png`](demo/09_arayuz_zaman.png) ve kapanmış aksiyon
-geçmişi [`demo/10_aksiyon_kapandi.png`](demo/10_aksiyon_kapandi.png).
+[`demo/09_arayuz_zaman.png`](demo/09_arayuz_zaman.png), kapanmış aksiyon
+geçmişi [`demo/10_aksiyon_kapandi.png`](demo/10_aksiyon_kapandi.png) ve mobil
+saha görünümü [`demo/12_arayuz_mobil.png`](demo/12_arayuz_mobil.png).
 
 Deploy URL yok — çözüm yerelde çalışır.
 

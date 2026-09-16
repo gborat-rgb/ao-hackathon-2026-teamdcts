@@ -12,7 +12,8 @@
 | `02_x_factor.txt` | Ayrışma testi ölçümü: 4 kart → 5 kart |
 | `03_gurultu_denetimi.txt` | Elenen alarmlardan 25 örnek ve her birinin eleme gerekçesi |
 | `04_kartlar.json` | Kartların makine okunur hâli |
-| `05_test_sonuclari.txt` | 39 testin sonucu |
+| `05_test_sonuclari.txt` | 60 testin sonucu |
+| `11_erken_tespit.txt` | Geceyi yeniden oynatma: kartların oluşma anı ve gecikme |
 
 Bu dosyaların hepsi komutla yeniden üretilebilir — dekoratif değil, gerçek çıktı.
 
@@ -73,14 +74,25 @@ Test acilinca ortaya cikan kok neden: session-service
 streamlit run src/app.py
 ```
 
-- **Olay Kartları** sekmesi: OLAY-01'i aç, kanıt/gerekçe/güven/karşı hipotez
-- **Aksiyon**: OLAY-03'ün durumunu `acik → devam_ediyor → kapandi` yap,
+- **Yönetici özeti** (sayfa açılır açılmaz, 20 sn): `3.000 ham → −2.006
+  dışlanan → 994 korele → 5 olay → 600×` şeridi; altında kayıp 0, çift
+  atama 0 ve çalışma süresi. Hepsi pipeline metriklerinden gelir.
+- **Olaylar** sekmesi: her satırda kök, şiddet/güven, kapsam, sahip, durum ve
+  ilk aksiyon. OLAY-01'in ayrıntısı açık gelir: kanıt, gerekçe, karşı
+  hipotez, zaman çizgisi, saha yönlendirmesi
+- **Aksiyon**: OLAY-03'ün durumunu `AÇIK → MÜDAHALEDE → KAPANDI` yap,
   durum geçmişinin kartta göründüğünü göster *(opsiyonel gereksinim)*
-- **X-Factor** sekmesi: kenar çubuğundan ayrışma testini **kapat**, kart
-  sayısının 5'ten 4'e düştüğünü ve session-service'in kaybolduğunu göster,
-  sonra tekrar aç
-- **Gürültü Denetimi** sekmesi: bir alarm seç, *"neden elendi"* sütununu göster
+- **X-Factor** sekmesi: yan yana **4 / 5** kartı; altında "False merge nasıl
+  engellendi?" paneli — ayrışma kapalıyken `session-service` alarmlarının
+  27/27'si OLAY-03'e gömülüyor, 15 dk zaman çakışması, grafik mesafesi 4 >
+  eşik 2, açıkken iki ayrı sahip. Sonra kenar çubuğundan ayrışma testini
+  **kapat**, üstteki olay sayısının 5'ten 4'e düştüğünü göster, tekrar aç
+- **Gürültü Denetimi** sekmesi: skorlama gürültüsü 1.888 · korelasyon dışı
+  118 · toplam 2.006; filtreyle `korelasyon_disi` seç, `eleme_gerekcesi`
+  sütununu göster
 - **Zaman Çizelgesi** sekmesi: sinyal/gürültü ayrımı ve işaretlenmiş olay pencereleri
+- **Mobil / saha görünümü** anahtarı (isteğe bağlı): üç sayılık şerit ve
+  kök · konum · sahip · durum listesi
 
 ### 5. Test kanıtı, performans ve sınırlar (1 dk)
 
@@ -88,8 +100,9 @@ streamlit run src/app.py
 python -m pytest tests/ -q
 ```
 
-> "39 test; veri muhasebesi, determinism, bozuk veri, duplicate ID,
-> dependency cycle ve satır sırası dahil. Aynı ortamda 7 koşu ortalaması
+> "60 test; veri muhasebesi, determinism, bozuk veri, duplicate ID,
+> dependency cycle, satır sırası, erken tespit ve arayüzün pipeline
+> metrikleriyle birebir eşleşmesi dahil. Aynı ortamda 7 koşu ortalaması
 > 0.625 saniye; demo hedefi olan 10 saniyenin rahat altında."
 
 > "OLAY-05'in kökünü subscriber-db olarak verdik, batch-scheduler'ı karşı
@@ -100,14 +113,16 @@ python -m pytest tests/ -q
 
 ## Ekran görüntüsü kanıtları
 
-Final QA sırasında gerçek Streamlit oturumundan 1600×1100 viewport ile alındı:
+Executive arayüz güncellemesinden sonra gerçek yerel Streamlit oturumundan
+(varsayılan ayarlar: eşik 0.35, ayrışma açık) headless Chromium ile alındı:
 
-| Dosya | Ne çekilecek |
-|---|---|
-| `06_arayuz_kartlar.png` | Olay Kartları sekmesi, OLAY-01 açık (üstteki 4 metrik görünsün) |
-| `07_arayuz_xfactor.png` | X-Factor sekmesi, "4 kart / 5 kart" karşılaştırması |
-| `08_arayuz_gurultu.png` | Gürültü Denetimi sekmesi, skor dağılımı grafiği dahil |
-| `09_arayuz_zaman.png` | Zaman Çizelgesi sekmesi, olay pencereleri işaretli |
-| `10_aksiyon_kapandi.png` | Bir aksiyon `kapandi` durumunda, durum geçmişi görünür |
+| Dosya | Görünüm | Ne gösteriyor |
+|---|---|---|
+| `06_arayuz_kartlar.png` | 1600×1100 | Yönetici özeti, 8 KPI, Olaylar sekmesi, OLAY-01 ayrıntısı açık |
+| `07_arayuz_xfactor.png` | 1600×1400 | X-Factor: 4 / 5 kart ve ölçülen false merge paneli |
+| `08_arayuz_gurultu.png` | 1600×1100 | Gürültü Denetimi özeti, gerekçeli tablo, skor dağılımı |
+| `09_arayuz_zaman.png` | 1600×1400 | Zaman Çizelgesi, olay pencereleri ve kart özeti |
+| `10_aksiyon_kapandi.png` | 1600×1100 | OLAY-01 aksiyonu `KAPANDI`, durum geçmişi görünür |
+| `12_arayuz_mobil.png` | 390×844 | Mobil / saha görünümü |
 
 Görüntüler dekoratif değildir; aynı özellikler canlı demoda tekrar üretilebilir.

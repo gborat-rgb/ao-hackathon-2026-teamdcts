@@ -9,8 +9,8 @@
 - [x] `python -m src.cli --json` test edildi ve deterministik
 - [x] `python -m src.cli --x-factor` test edildi
 - [x] `python -m src.cli --gurultu 20` test edildi
-- [x] `python -m pytest tests/ -q`: 39/39
-- [x] Streamlit AppTest: 0 exception, 4 sekme
+- [x] `python -m pytest tests/ -q`: 60/60
+- [x] Streamlit AppTest: 0 exception, 5 sekme, 8 KPI pipeline ile eşleşiyor
 
 ## Veri ve jüri kanıtı
 

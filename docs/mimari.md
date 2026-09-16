@@ -195,8 +195,25 @@ alarmı değil. İlk denemede ikincisi kullanıldı ve gecikmeler 10–90 dakika
 
 ### `src/app.py` — Streamlit arayüzü
 
-Beş sekme: Olay Kartları (aksiyon durumu değiştirilebilir), **Erken Tespit**,
-X-Factor karşılaştırması, Gürültü Denetimi, Zaman Çizelgesi.
+Üstte yönetici özeti: `ham alarm → açıkça dışlanan → korele alarm →
+aksiyonlanabilir olay → indirgeme` akışı ve sekiz KPI (ham, olay, korele,
+dışlanan, indirgeme, kayıp, çift atama, çalışma süresi). Değerlerin tamamı
+`calistir().metrikler` sözlüğünden gelir; "veri bütünlüğü" rozeti de kayıp ve
+çift atama sıfır olduğunda yeşil yanar. Görsel tema `.streamlit/config.toml`
+ve `app.py` içindeki tek CSS bloğunda tanımlıdır.
+
+Beş sekme: **Olaylar** (her satırda kök, şiddet/güven, alarm/host/servis
+kapsamı, sahip, durum ve ilk aksiyon; ayrıntıda kanıt, gerekçe, karşı
+hipotez, sınırlar, zaman çizgisi, saha yönlendirmesi ve aksiyon takibi),
+**Erken Tespit**, **X-Factor**, **Gürültü Denetimi** (skorlama gürültüsü,
+korelasyon dışı ve toplam dışlanan özetiyle birlikte dışlanan kayıtların
+tamamı), **Zaman Çizelgesi**.
+
+X-Factor sekmesi kart sayılarını `ayrisma_karsilastirmasi(esik)` ile alır.
+"False merge nasıl engellendi?" paneli sabit metin değildir: aynı eşikteki
+ayrışma açık/kapalı koşuların alarm atamaları karşılaştırılarak korunan
+kökün kapalı koşuda hangi karta gömüldüğü, iki kartın zaman çakışması ve
+`BagimlilikGrafigi.mesafe()` ile kökler arası grafik mesafesi hesaplanır.
 
 Kenar çubuğundaki **mobil / saha görünümü** anahtarı sekmeleri kapatıp tek
 kolonlu sade bir liste verir: kök neden, fiziksel konum, sahip, durum.

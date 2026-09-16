@@ -1,7 +1,7 @@
 # AI Jüri Özeti
 
 **Takım:** Fail-i Over · **Senaryo:** S-A1 Alarm Fırtınası
-**Sonuç:** 3000 alarm → 5 olay kartı · 600× indirgeme · 0 kayıp · 3,1 dk ortalama tespit · 57/57 test
+**Sonuç:** 3000 alarm → 5 olay kartı · 600× indirgeme · 0 kayıp · 3,1 dk ortalama tespit · 60/60 test
 
 ---
 
@@ -33,6 +33,8 @@ yazılmadı** — o süre veri keşfine gitti.
 | Kodlamaya geçiş onayı | **İnsan** |
 | Final QA'nın başlatılması ve güvenli düzeltme yetkisi | **İnsan** |
 | Veri bütünlüğü ve negatif test denetimi | Codex; gerçek komut çıktılarıyla |
+| Executive arayüz kapsamı, çekirdeğe dokunmama ve push yasağı | **İnsan** |
+| Executive arayüz uygulaması | Codex başladı, Claude Code (Opus 5) tamamladı; AppTest ile doğrulandı |
 
 ### AI'ın kendi önerisini veriyle çürüttüğü yerler
 
@@ -88,7 +90,7 @@ Dört aşama, her biri sayı üretiyor:
 | Üretilen kart | 5 (kriter ≤15) | `test_en_fazla_onbes_kart` |
 | İndirgeme | 600× | 3000 / 5 |
 | Uçtan uca süre | 0,625 sn | 7 koşu ortalaması, Python 3.12.14 |
-| Test | 57/57 | `pytest tests/ -q` |
+| Test | 60/60 | `pytest tests/ -q` |
 
 ### Bulunan beş olay
 
@@ -160,6 +162,20 @@ $ python -m src.cli --x-factor
 ```
 
 Demoda bu anahtar canlı olarak kapatılıp açılıyor.
+
+Arayüzde aynı ölçüm yan yana gösteriliyor ve false merge sayıyla açıklanıyor.
+Panel, aynı eşikteki ayrışma açık/kapalı koşuların alarm atamalarını
+karşılaştırarak hesaplanıyor; sabit metin değil:
+
+```text
+Ayrışma kapalı · OLAY-03   payment-provider-gw + session-service
+                           session-service alarmlarının 27/27'si tek kartta
+Grafik testi               Kopuk kökler · 15 dk zaman çakışması · mesafe 4, eşik 2
+Ayrışma açık               OLAY-03 → Entegrasyon ekibi · OLAY-04 → Uygulama ekibi
+```
+
+Kanıt: `demo/07_arayuz_xfactor.png` · `src/app.py` → `_false_merge_kanitlari()` ·
+`tests/test_app.py::test_x_factor_false_merge_kaniti_gercek_kosulardan_geliyor`
 
 ### Kod kanıtı
 
@@ -246,7 +262,7 @@ pip install -r requirements.txt
 python -m src.cli              # olay kartları (terminal)
 python -m src.cli --x-factor   # X-Factor ölçümü
 streamlit run src/app.py       # web arayüzü
-python -m pytest tests/ -q     # 39 test
+python -m pytest tests/ -q     # 60 test
 ```
 
 **Beklenen çıktı:** 3000 alarmın 1888'i skor gürültüsü olarak, 118'i ise
