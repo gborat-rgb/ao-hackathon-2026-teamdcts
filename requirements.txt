@@ -1,0 +1,19 @@
+# AO Hackathon 2026 — Fail-i Over
+#
+# Hedef yorumlayici: Python 3.9.2 (C:\Program Files\Python39\python.exe)
+# Asagidaki surumler kurulu ortamdan dogrulanarak yazilmistir, tahmin degildir.
+#
+# DIKKAT: numpy 2.0.x, Python 3.9'u destekleyen son numpy serisidir. Pinleri
+# yukseltmek (pip install -U) ortami kirar. Surum degisikligi gerekiyorsa once
+# Python surumu konusulmalidir.
+
+pandas==2.3.3
+numpy==2.0.2
+scikit-learn==1.6.1
+scipy==1.13.1
+requests==2.32.5
+pydantic==2.13.5
+streamlit==1.50.0
+altair==5.5.0
+matplotlib==3.9.4
+pyarrow==21.0.0

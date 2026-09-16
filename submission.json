@@ -16,7 +16,10 @@
   },
   "calistirma": {
     "komut": "python app.py",
-    "on_kosullar": ["Python 3.11+"],
+    "on_kosullar": [
+      "Python 3.9.2",
+      "pip install -r requirements.txt"
+    ],
     "veri_yolu": "./data"
   },
   "ai_kullanimi": {
